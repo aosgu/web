@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-display: "Syne", "Noto Serif SC", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --color-ink: #070605;
+  --color-ink-2: #100e0c;
+  --color-paper: #ebe4d4;
+  --color-paper-dim: #cfc6b4;
+  --color-gold: #d4af37;
+  --color-gold-2: #f0d78c;
+  --color-gold-dim: #8a7340;
+  --color-ember: #e85d04;
+  --color-cyan: #5eead4;
+  --color-mute: #9a9184;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #070605;
+  color: #ebe4d4;
+  font-family: "Noto Serif SC", "Songti SC", serif;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: #d4af37;
+  color: #070605;
+}
+
+.gold-text {
+  background: linear-gradient(180deg, #fff4c8 0%, #d4af37 42%, #8a5a12 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.paper-rule {
+  background: linear-gradient(90deg, transparent, #d4af37 20%, #d4af37 80%, transparent);
+  height: 1px;
+}
+
+.grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  opacity: 0.09;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.vignette {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.flow-line {
+  stroke-dasharray: 8 12;
+  animation: dash 18s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -400;
+  }
+}
+
+@keyframes rise {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-gold {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(212, 175, 55, 0);
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2.6s ease-out infinite;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(240, 215, 140, 0.35), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3.2s linear infinite;
+}
+
+.mask-fade {
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.scroll-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.node-glow {
+  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.45));
+}
+
+.card-glass {
+  background: linear-gradient(180deg, rgba(20, 16, 12, 0.78), rgba(8, 7, 6, 0.88));
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.16);
+}
+
+.hairline {
+  box-shadow: inset 0 0 0 1px rgba(235, 228, 212, 0.08);
+}
