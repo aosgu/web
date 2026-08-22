@@ -1,0 +1,4 @@
+# 依赖与构建产物（集合页需要的产物在 docs/ 里，已被脚本单独维护）
+node_modules/
+dist/
+.DS_Store
