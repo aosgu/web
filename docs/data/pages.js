@@ -1,0 +1,18 @@
+window.PAGES_DATA = [
+  {
+    "id": "interactive-3p-insomnia-webpage",
+    "name": "失眠 3P 模型 · 交互科普页",
+    "description": "用滚动叙事讲解失眠的三因素模型：Predisposing（易感）、Precipitating（诱发）、Perpetuating（维持），React + Framer Motion 驱动动画。",
+    "tags": [
+      "React",
+      "Framer Motion",
+      "暗色",
+      "滚动叙事"
+    ],
+    "hash": "3048126e9cb0c915",
+    "updated": "2026-08-22T00:38:43+00:00",
+    "thumb": "thumbnails/interactive-3p-insomnia-webpage-small.jpg",
+    "thumbLarge": "thumbnails/interactive-3p-insomnia-webpage.jpg",
+    "path": "pages/interactive-3p-insomnia-webpage/"
+  }
+];
