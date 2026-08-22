@@ -6,42 +6,147 @@
 <title>灵感库 · Frontend Inspiration Gallery</title>
 <style>
   :root{
-    --bg:#0e1014;
-    --panel:#161923;
-    --card:#1a1e29;
-    --text:#e8eaf0;
-    --muted:#8b93a5;
-    --accent:#7c8cff;
-    --border:rgba(255,255,255,.07);
+    --bg:#f2f4f8;
+    --panel:#ffffff;
+    --card:#ffffff;
+    --text:#1b1f2a;
+    --muted:#707789;
+    --accent:#3d56d6;
+    --accent-soft:rgba(80,98,230,.10);
+    --border:rgba(27,31,42,.09);
+    --grid-line:rgba(27,31,42,.05);
     --radius:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{
-    background:var(--bg);
-    background-image:radial-gradient(60% 40% at 50% 0%, rgba(124,140,255,.08), transparent 70%);
+    background-color:var(--bg);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:44px 44px;
     color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
     min-height:100vh;
+    overflow-x:hidden;
   }
-  .hero{max-width:1280px;margin:0 auto;padding:52px 24px 0;text-align:center}
-  .hero h1{font-size:30px;font-weight:700;letter-spacing:.5px}
+
+  /* ---------- hero：搜索框上方 600px 的交互动画区 ---------- */
+  .hero{
+    position:relative;
+    height:632px;               /* 600px 内容 + 32px 与搜索框的搭接 */
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:0 24px;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(58% 62% at 50% 36%, rgba(255,255,255,.95), rgba(255,255,255,.45) 58%, transparent 100%),
+      radial-gradient(42% 34% at 50% 28%, rgba(93,113,255,.08), transparent 100%);
+  }
+  .hero-glow{
+    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .45s;
+    background:
+      radial-gradient(260px 260px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.9), rgba(255,255,255,0) 70%),
+      radial-gradient(180px 180px at var(--mx,50%) var(--my,50%), rgba(106,126,255,.10), rgba(106,126,255,0) 75%);
+  }
+  .hero:hover .hero-glow{opacity:1}
+
+  .hero-copy{position:relative;text-align:center;z-index:2}
+  .eyebrow{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted);
+  }
+  .hero h1{margin-top:14px;font-size:36px;font-weight:700;letter-spacing:.5px;color:var(--text)}
   .hero h1 span{color:var(--accent)}
   .hero p{margin-top:10px;color:var(--muted);font-size:14px}
-  .search-wrap{max-width:580px;margin:26px auto 0;position:relative}
+
+  /* ---------- 文件夹动效（移植自 pure-frontend-folder-effect） ---------- */
+  .hero-stage{
+    position:relative;z-index:2;
+    display:flex;align-items:flex-end;justify-content:center;
+    margin-top:42px;
+  }
+  .f-slot{transition:transform .35s ease}
+  .f-slot + .f-slot{margin-left:-26px}
+  .f-slot.raised{margin-bottom:-44px} /* 较原 +26px 净下移 70px，避开上方文案 */
+  @keyframes fFloat{from{transform:translateY(0)}to{transform:translateY(-7px)}}
+  .f-float{animation:fFloat 5.2s ease-in-out infinite alternate}
+  .f-slot:nth-child(2) .f-float{animation-delay:-1.7s}
+  .f-slot:nth-child(3) .f-float{animation-delay:-3.4s}
+  @media (prefers-reduced-motion: reduce){
+    .f-float{animation:none}
+    .f-slot{transition:none}
+  }
+
+  .f-folder{position:relative;user-select:none;cursor:pointer}
+  .f-shadow{
+    position:absolute;left:14px;right:14px;top:30%;bottom:-14px;border-radius:40px;
+    background:rgba(15,17,22,.32);filter:blur(22px);opacity:.4;
+    transition:bottom .5s ease-out, filter .5s ease-out, opacity .5s ease-out;
+  }
+  .f-folder.open .f-shadow{bottom:-26px;filter:blur(30px);opacity:.55}
+  .f-back{
+    position:absolute;left:0;right:0;top:0;overflow:hidden;
+    box-shadow:0 10px 24px -12px rgba(10,12,18,.5);
+    transition:transform .5s ease-out;
+  }
+  .f-folder.open .f-back{transform:translateY(-10px)}
+  .f-abstract{position:absolute;inset:0;overflow:hidden}
+  .f-blob{position:absolute}
+  .f-sheen{
+    position:absolute;inset:0;
+    background:linear-gradient(200deg, rgba(255,255,255,.28) 0%, rgba(255,255,255,0) 38%, rgba(0,0,0,.18) 100%);
+  }
+  .f-peek{position:absolute;inset:0;transition:transform .5s ease-out}
+  .f-folder.open .f-peek{transform:translateY(-26px)}
+  .f-star{position:absolute;pointer-events:none}
+  .f-star svg{width:100%;height:100%;display:block;filter:drop-shadow(0 14px 22px rgba(12,14,20,.30))}
+  .f-flap{position:absolute;left:0;right:0;transition:transform .5s ease-out}
+  .f-folder.open .f-flap{transform:translateY(12px)}
+  .f-flap-clip{position:absolute;inset:0;
+    backdrop-filter:blur(22px) saturate(150%);
+    -webkit-backdrop-filter:blur(22px) saturate(150%);
+  }
+  .f-flap > svg{position:absolute;left:0;top:0;pointer-events:none}
+  .f-labels{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;padding:0 20px 20px}
+  .f-title{font-size:15px;font-weight:500;letter-spacing:-.01em}
+  .f-sub{margin-top:3px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px}
+  .f-t-dark{color:#262a35}
+  .f-t-mid{color:#7a8194}
+  .f-t-light{color:#fff}
+  .f-t-light7{color:rgba(255,255,255,.72)}
+
+  /* ---------- 搜索框 ---------- */
+  .search-section{
+    position:relative;z-index:5;
+    width:100%;max-width:628px;
+    margin:-32px auto 0;
+    padding:0 24px;
+  }
+  .search-wrap{position:relative}
   .search-wrap svg{
-    position:absolute;left:17px;top:50%;transform:translateY(-50%);
+    position:absolute;right:18px;top:50%;transform:translateY(-50%);
     width:18px;height:18px;stroke:var(--muted);fill:none;pointer-events:none;
   }
   #search{
-    width:100%;padding:14px 16px 14px 46px;border-radius:999px;
+    width:100%;padding:15px 48px 15px 18px;border-radius:16px;
     border:1px solid var(--border);background:var(--panel);color:var(--text);
-    font-size:15px;outline:none;transition:border-color .2s, box-shadow .2s;
+    font-size:15px;outline:none;
+    box-shadow:0 14px 34px -10px rgba(27,31,42,.14), 0 2px 6px rgba(27,31,42,.04);
+    transition:border-color .2s, box-shadow .2s;
     -webkit-appearance:none;appearance:none;
   }
-  #search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,140,255,.18)}
-  #search::placeholder{color:var(--muted)}
+  #search:focus{
+    border-color:rgba(80,98,230,.55);
+    box-shadow:0 0 0 4px rgba(80,98,230,.12), 0 14px 34px -10px rgba(27,31,42,.14);
+  }
+  #search::placeholder{color:rgba(112,119,137,.55)}
+  #search::-webkit-search-cancel-button,#search::-webkit-search-decoration{-webkit-appearance:none;appearance:none}
+
+  /* ---------- 列表区 ---------- */
   .meta-row{
-    max-width:1280px;margin:26px auto 0;padding:0 24px;
+    max-width:1280px;margin:28px auto 0;padding:0 24px;
     display:flex;justify-content:space-between;align-items:baseline;
     color:var(--muted);font-size:13px;
   }
@@ -59,13 +164,13 @@
   }
   .card:hover{
     transform:translateY(-4px);
-    border-color:rgba(124,140,255,.45);
-    box-shadow:0 12px 28px rgba(0,0,0,.45);
+    border-color:rgba(80,98,230,.35);
+    box-shadow:0 18px 36px -14px rgba(27,31,42,.18);
   }
-  .thumb{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#20242e}
+  .thumb{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#eceef4}
   .placeholder-thumb{
     width:100%;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;
-    color:var(--muted);font-size:12px;background:linear-gradient(135deg,#20242e,#161923);
+    color:var(--muted);font-size:12px;background:linear-gradient(135deg,#f0f2f7,#e4e7ee);
   }
   .card-body{padding:12px 14px 14px}
   .card-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -81,27 +186,42 @@
   }
   .tag{
     flex-shrink:0;white-space:nowrap;
-    font-size:11px;color:var(--accent);background:rgba(124,140,255,.12);
+    font-size:11px;color:var(--accent);background:var(--accent-soft);
     padding:2px 9px;border-radius:999px;
   }
-  mark{background:none;color:var(--accent)}
+  mark{background:rgba(80,98,230,.12);color:var(--accent);border-radius:3px;padding:0 2px}
   .empty{max-width:1280px;margin:90px auto;text-align:center;color:var(--muted)}
   .empty .big{font-size:42px;margin-bottom:14px}
-  footer{max-width:1280px;margin:0 auto;padding:0 24px 44px;color:#5b6272;font-size:12px;text-align:center}
+  footer{max-width:1280px;margin:0 auto;padding:0 24px 44px;color:#9aa1b0;font-size:12px;text-align:center}
+
+  /* ---------- 响应式 ---------- */
+  @media(max-width:900px){
+    .hero{height:auto;min-height:560px;padding-top:40px;padding-bottom:56px}
+    .hero h1{font-size:28px}
+    .hero-stage{transform:scale(.66);transform-origin:top center;margin:30px 0 -28px}
+  }
 </style>
 </head>
 <body>
 
-<header class="hero">
-  <h1>✦ 前端<span>灵感库</span></h1>
-  <p>Frontend Inspiration Gallery · 每个 vibe 出来的页面都收藏在这里</p>
+<header class="hero" id="hero">
+  <div class="hero-glow" id="heroGlow"></div>
+  <div class="hero-copy">
+    <div class="eyebrow">Frontend Inspiration Gallery</div>
+    <h1>✦ 前端<span>灵感库</span></h1>
+    <p>每个 vibe 出来的页面都收藏在这里 · 悬停文件夹可以打开看看</p>
+  </div>
+  <div class="hero-stage" id="heroStage"></div>
+</header>
+
+<div class="search-section">
   <div class="search-wrap">
     <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round">
       <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
     </svg>
     <input id="search" type="search" placeholder="搜索页面名称、描述或标签…" autocomplete="off" autofocus>
   </div>
-</header>
+</div>
 
 <div class="meta-row">
   <span id="count"></span>
@@ -119,6 +239,7 @@
 
 <script src="data/pages.js"></script>
 <script>
+  /* ================= 画廊数据与搜索 ================= */
   const data = (window.PAGES_DATA || []).map(p => ({
     ...p,
     lc: [p.name, p.description, (p.tags || []).join(' '), p.id].join(' ').toLowerCase()
@@ -168,6 +289,205 @@
 
   document.getElementById('search').addEventListener('input', e => render(e.target.value));
   render();
+
+  /* ================= hero 文件夹动效（移植自 pure-frontend-folder-effect） ================= */
+
+  // 文件夹正面翻盖的 clip-path 轮廓：左侧带凸起标签、向下阶梯过渡的圆角矩形
+  function folderFlapPath(w, h, tabW, step, r = 22, sr = 16) {
+    return [
+      `M ${r} 0`,
+      `L ${tabW - sr} 0`,
+      `A ${sr} ${sr} 0 0 1 ${tabW} ${sr}`,
+      `L ${tabW} ${step - sr}`,
+      `A ${sr} ${sr} 0 0 0 ${tabW + sr} ${step}`,
+      `L ${w - r} ${step}`,
+      `A ${r} ${r} 0 0 1 ${w} ${step + r}`,
+      `L ${w} ${h - r}`,
+      `A ${r} ${r} 0 0 1 ${w - r} ${h}`,
+      `L ${r} ${h}`,
+      `A ${r} ${r} 0 0 1 0 ${h - r}`,
+      `L 0 ${r}`,
+      `A ${r} ${r} 0 0 1 ${r} 0`,
+      'Z',
+    ].join(' ');
+  }
+
+  const PRESETS = {
+    aurora: {
+      base: 'linear-gradient(120deg,#e7ebf2 0%,#c8d2e2 35%,#8fa2c0 60%,#3f4a63 100%)',
+      blobs: [
+        { color: '#1d3f7a', w: '75%', h: '190%', top: '-45%', left: '38%', rotate: 28, blur: 26 },
+        { color: '#0b1220', w: '38%', h: '190%', top: '-45%', left: '26%', rotate: 28, blur: 22 },
+        { color: '#d64b3c', w: '40%', h: '180%', top: '-40%', left: '-6%', rotate: 28, blur: 26 },
+        { color: '#6f8bd6', w: '46%', h: '170%', top: '-35%', left: '62%', rotate: 28, blur: 30, opacity: 0.9 },
+        { color: '#f5f7fb', w: '55%', h: '120%', top: '30%', left: '-14%', rotate: 20, blur: 34 },
+      ],
+    },
+    ember: {
+      base: 'linear-gradient(115deg,#0d2b33 0%,#123039 30%,#2a1414 62%,#0a0a0c 100%)',
+      blobs: [
+        { color: '#0f5a63', w: '70%', h: '150%', top: '-30%', left: '-16%', rotate: -18, blur: 26 },
+        { color: '#ff3b21', w: '52%', h: '150%', top: '-25%', left: '46%', rotate: -22, blur: 24 },
+        { color: '#8c1409', w: '60%', h: '120%', top: '35%', left: '18%', rotate: 12, blur: 30 },
+        { color: '#050506', w: '85%', h: '90%', top: '52%', left: '-6%', rotate: 6, blur: 32 },
+        { color: '#f06a4b', w: '26%', h: '90%', top: '-10%', left: '32%', rotate: -30, blur: 20, opacity: 0.75 },
+      ],
+    },
+    plum: {
+      base: 'linear-gradient(140deg,#3a2b4d 0%,#6b5570 40%,#a6474a 70%,#2a1620 100%)',
+      blobs: [
+        { color: '#5b3f7a', w: '90%', h: '120%', top: '-20%', left: '-20%', rotate: 14, blur: 24 },
+        { color: '#c1443c', w: '70%', h: '130%', top: '-10%', left: '40%', rotate: -10, blur: 26 },
+        { color: '#20121c', w: '80%', h: '80%', top: '55%', left: '10%', rotate: 4, blur: 28 },
+        { color: '#e2a08c', w: '40%', h: '60%', top: '10%', left: '5%', rotate: 20, blur: 26, opacity: 0.7 },
+      ],
+    },
+    ink: {
+      base: 'linear-gradient(130deg,#dfe4ec 0%,#aab4c6 45%,#5b6376 75%,#1b1f28 100%)',
+      blobs: [
+        { color: '#2c3d63', w: '60%', h: '160%', top: '-30%', left: '45%', rotate: 24, blur: 26 },
+        { color: '#ffffff', w: '60%', h: '120%', top: '20%', left: '-18%', rotate: 18, blur: 30 },
+        { color: '#b5453b', w: '30%', h: '150%', top: '-25%', left: '10%', rotate: 24, blur: 24, opacity: 0.85 },
+      ],
+    },
+  };
+
+  function abstractEl(variant) {
+    const p = PRESETS[variant];
+    const d = document.createElement('div');
+    d.className = 'f-abstract';
+    d.style.background = p.base;
+    d.innerHTML = p.blobs.map(b =>
+      `<div class="f-blob" style="width:${b.w};height:${b.h};top:${b.top};left:${b.left};opacity:${b.opacity ?? 1};transform:rotate(${b.rotate}deg);filter:blur(${b.blur}px);background:radial-gradient(closest-side, ${b.color} 0%, ${b.color}cc 55%, transparent 100%)"></div>`
+    ).join('') + '<div class="f-sheen"></div>';
+    return d;
+  }
+
+  const THEMES = {
+    glass: {
+      front: 'linear-gradient(168deg, rgba(255,255,255,.42) 0%, rgba(255,255,255,.66) 45%, rgba(255,255,255,.93) 100%)',
+      stroke: 'rgba(255,255,255,.85)',
+      innerGlow: 'linear-gradient(180deg, rgba(255,255,255,.65) 0%, rgba(255,255,255,0) 22%, rgba(255,255,255,0) 82%, rgba(255,255,255,.6) 100%)',
+      title: 'f-t-dark', sub: 'f-t-mid',
+    },
+    dark: {
+      front: 'linear-gradient(172deg, rgba(22,22,26,.58) 0%, rgba(12,12,14,.82) 40%, rgba(4,4,6,.94) 100%)',
+      stroke: 'rgba(255,255,255,.14)',
+      innerGlow: 'linear-gradient(180deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 20%, rgba(255,255,255,0) 85%, rgba(255,255,255,.08) 100%)',
+      title: 'f-t-light', sub: 'f-t-light7',
+    },
+    white: {
+      front: 'linear-gradient(172deg, rgba(255,255,255,.80) 0%, rgba(250,250,252,.94) 45%, rgba(240,241,244,.98) 100%)',
+      stroke: 'rgba(255,255,255,.95)',
+      innerGlow: 'linear-gradient(180deg, rgba(255,255,255,.9) 0%, rgba(255,255,255,0) 18%, rgba(255,255,255,0) 80%, rgba(255,255,255,.85) 100%)',
+      title: 'f-t-dark', sub: 'f-t-mid',
+    },
+  };
+
+  function createFolder(cfg) {
+    const {
+      width = 340, height = 252, frontTop = 48, tabWidth = 158, step = 48, radius = 22,
+      theme = 'glass', variant = 'aurora', title = 'My Files', subtitle, peek = false,
+    } = cfg;
+    const t = THEMES[theme];
+    const flapH = height - frontTop;
+    const path = folderFlapPath(width, flapH, tabWidth, step, radius, Math.min(radius, 16));
+    const state = { hovered: false };
+
+    const el = document.createElement('div');
+    el.className = 'f-folder';
+    el.style.width = width + 'px';
+    el.style.height = height + 'px';
+    el.innerHTML = `
+      <div class="f-shadow"></div>
+      <div class="f-back" style="height:${height - 26}px;border-radius:${radius}px"></div>
+      ${peek ? `<div class="f-peek">
+        <div class="f-star" style="left:62px;top:-36px;width:172px;height:158px">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <defs><linearGradient id="starBack" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#5b3f7a"/><stop offset=".45" stop-color="#a6474a"/><stop offset="1" stop-color="#2a1620"/>
+            </linearGradient></defs>
+            <path d="M50 0 C54 32 68 46 100 50 C68 54 54 68 50 100 C46 68 32 54 0 50 C32 46 46 32 50 0 Z" fill="url(#starBack)"/>
+          </svg>
+        </div>
+        <div class="f-star" style="left:76px;top:-55px;width:144px;height:150px">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <defs><linearGradient id="starFront" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#e2a08c"/><stop offset=".55" stop-color="#c1443c"/><stop offset="1" stop-color="#5b3f7a"/>
+            </linearGradient></defs>
+            <path d="M50 0 C54 32 68 46 100 50 C68 54 54 68 50 100 C46 68 32 54 0 50 C32 46 46 32 50 0 Z" fill="url(#starFront)"/>
+          </svg>
+        </div>
+      </div>` : ''}
+      <div class="f-flap" style="top:${frontTop}px;height:${flapH}px">
+        <div class="f-flap-clip" style="clip-path:path('${path}');-webkit-clip-path:path('${path}');background:${t.front}">
+          <div style="position:absolute;inset:0;background:${t.innerGlow}"></div>
+        </div>
+        <svg width="${width}" height="${flapH}" viewBox="0 0 ${width} ${flapH}" fill="none">
+          <path d="${path}" stroke="${t.stroke}" stroke-width="1.25"/>
+        </svg>
+        <div class="f-labels">
+          <div>
+            <div class="f-title ${t.title}">${esc(title)}</div>
+            ${subtitle ? `<div class="f-sub ${t.sub}">${esc(subtitle)}</div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    el.querySelector('.f-back').appendChild(abstractEl(variant));
+
+    el.addEventListener('mouseenter', () => { state.hovered = true; el.classList.add('open'); });
+    el.addEventListener('mouseleave', () => { state.hovered = false; el.classList.remove('open'); });
+    return { el, get hovered() { return state.hovered; } };
+  }
+
+  const stage = document.getElementById('heroStage');
+  const FOLDERS = [
+    { width: 248, height: 186, frontTop: 34, tabWidth: 114, step: 40, radius: 16,
+      theme: 'glass', variant: 'aurora', title: '灵感收藏', subtitle: 'inspiration', k: 14 },
+    { width: 266, height: 200, frontTop: 44, tabWidth: 112, step: 42, radius: 17,
+      theme: 'white', variant: 'plum', title: '页面原型', subtitle: 'prototypes', peek: true, k: 22, raised: true },
+    { width: 248, height: 186, frontTop: 38, tabWidth: 120, step: 38, radius: 16,
+      theme: 'dark', variant: 'ember', title: '视觉实验', subtitle: 'experiments', k: 30 },
+  ];
+  const made = FOLDERS.map(cfg => {
+    const slot = document.createElement('div');
+    slot.className = 'f-slot' + (cfg.raised ? ' raised' : '');
+    slot.dataset.k = cfg.k;
+    const float = document.createElement('div');
+    float.className = 'f-float';
+    const f = createFolder(cfg);
+    float.appendChild(f.el);
+    slot.appendChild(float);
+    stage.appendChild(slot);
+    return f;
+  });
+
+  // 没人操作时轮流打开一个文件夹，作为占位氛围动画
+  let ci = 0;
+  setInterval(() => {
+    if (document.hidden) return;
+    const f = made[ci++ % made.length];
+    if (f.hovered) return;
+    f.el.classList.add('open');
+    setTimeout(() => { if (!f.hovered) f.el.classList.remove('open'); }, 1500);
+  }, 2400);
+
+  // hero 视差：鼠标移动时各文件夹按不同系数位移，网格上跟随一道柔光
+  const hero = document.getElementById('hero');
+  const glow = document.getElementById('heroGlow');
+  const slots = () => document.querySelectorAll('.f-slot');
+  hero.addEventListener('mousemove', e => {
+    const r = hero.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    glow.style.setProperty('--mx', x + 'px');
+    glow.style.setProperty('--my', y + 'px');
+    const dx = x / r.width - .5, dy = y / r.height - .5;
+    slots().forEach(s => {
+      const k = +s.dataset.k;
+      s.style.transform = `translate(${(dx * k).toFixed(1)}px, ${(dy * k).toFixed(1)}px)`;
+    });
+  });
+  hero.addEventListener('mouseleave', () => slots().forEach(s => s.style.transform = ''));
 </script>
 </body>
 </html>
