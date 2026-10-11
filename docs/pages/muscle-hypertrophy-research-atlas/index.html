@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="zh-CN">
+<!--
+  ============================================================================
+  研究图谱海报 · 设计规范 v4      （本文件由 gen_poster.cjs 生成，勿手工编辑）
+  ============================================================================
+  1 · 画布
+     W=3600  H=1280  MARGIN=70  BASELINE=1050
+     横轴只收录有文献问世的年份（presentYears），空年份略去 —— 故横轴不等距
+     spacing = (W - 2*MARGIN) / (年数 - 1)
+     yearX(y) = MARGIN + 年份下标(y) * spacing
+
+  2 · 山峰 —— 编码"当年研究数量"
+     PEAK_MIN=28  PEAK_MAX=190
+     peakH(c) = PEAK_MIN + (c / maxCount) * (PEAK_MAX - PEAK_MIN)
+     三角形底宽 2*hw = 54；顶点 (yearX, BASELINE-h)，底边压在 BASELINE 上
+     填充 = 当年占比最高分类的颜色，opacity .62，另加同色描边 .9
+     峰顶数字 = 当年条数
+
+  3 · 标签网格 —— 纸面上的研究标题
+     COLS=11  colW=(W-2*MARGIN)/COLS   ROW_H=56  START_Y=150  LABEL_BOTTOM=846
+     列位置随年份推移：colOf(y) = floor(年份下标 / 年数 * COLS)
+       → 每个标题大致落在自己年份的正上方，连线短且不交叉
+     列满时向左右最近的空位扩散（pickCol）；右上角标题/图例保留区会遮住
+       右侧若干列的顶部几行，用 blockedRow() 跳过
+
+  4 · 连线 —— 标题 → 年份
+     三次贝塞尔：起点=标题圆点，终点=该年山峰顶点，控制点纵向插值 .55 / .45
+     线色=该研究所属分类色，静态 opacity .5，mix-blend-mode:multiply
+
+  5 · 配色
+     A 描述性      #243a8f      B 机制研究   #4c64b5      C 剂量/可重复 #9fbfe3
+     D 遗传学      #5fa39b      E 方法学批评 #8e2c24      F 综述/荟萃   #d4ad86
+     纸面 #f7f7f3 · 墨 #1f2b4d · 页面底 #c9c8c4 · 参考线 #aab2c4
+
+  6 · 交互
+     悬停标题 → 点亮该条研究，并同时点亮它所属年份的山峰，其余淡出
+     悬停山峰（含覆盖整列的透明命中矩形）→ 点亮该年全部研究与连线，
+       其余山峰淡到 opacity .18
+     峰顶 tooltip：背景 = 山峰颜色；文字颜色按 WCAG 相对亮度自适应
+       （L > 0.42 用深墨 #0f172a，否则用白 #ffffff），避免浅色底看不清
+     ⚠ 命中矩形起始 y = 838 必须大于最后一行标签底部 822，否则会抢走标题的 hover
+
+  7 · 缩放
+     #canvas 包裹 #poster：poster 用 transform:scale() + transform-origin:0 0，
+       canvas 宽高同步设为 W*scale / H*scale，保证滚动区域随之正确变化
+     锚点不动：scrollLeft = focus * ratio - off（focus = 锚点的内容坐标）
+     按钮 − / 百分比 / ＋；键盘 + - 0（带不带 ⌘/Ctrl 均可）、← → 翻页、
+       Ctrl/⌘+滚轮（触控板捏合）
+     范围 0.4 – 2.4，步进 1.2×
+
+  8 · 换主题复用时只需改这几处
+     CAT_NAMES（分类名）· PALETTE（配色）· 标题与图例文案
+     条目数量级变化较大时再调 COLS 与 W
+     注：数据输入（源表路径、解析规则、条目筛选）按主题自行定制，不在本规范内
+  ============================================================================
+-->
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>增肌个体差异 · 研究图谱 1997–2026</title>
+<style>
+  /* 视觉基调：复古 atlas 海报 —— 米黄纸面 / 衬线标题 / 细墨线。改色请见文件头规范 §5 */
+  :root{
+    --serif: ui-serif, Georgia, "Songti SC", "Times New Roman", serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --ink:#1f2b4d; --paper:#f7f7f3;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--sans);color:#334155;
+    background-color:#c9c8c4;
+    background-image:radial-gradient(circle at 18% 8%, rgba(255,255,255,.4), transparent 42%),
+                     radial-gradient(circle at 85% 95%, rgba(0,0,0,.12), transparent 50%);
+    min-height:100vh}
+  header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;
+    padding:32px 32px 20px}
+  .kicker{font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:#475569}
+  h1{margin:6px 0 2px;font-family:var(--serif);font-size:34px;color:#0f172a;font-weight:600}
+  .sub{font-size:13px;color:#475569}
+  .btns{display:flex;gap:8px}
+  button{border:1px solid rgba(51,65,85,.4);background:rgba(255,255,255,.6);color:#1e293b;
+    border-radius:999px;padding:8px 16px;font-size:13px;cursor:pointer;backdrop-filter:blur(4px)}
+  button:hover{background:#fff}
+  button:active{transform:translateY(1px)}
+  .btns{align-items:center}
+  .zdiv{width:1px;height:20px;background:rgba(51,65,85,.3);margin:0 2px}
+  #zout,#zin{width:34px;padding:8px 0;font-size:15px;line-height:1}
+  #zlevel{min-width:58px;font-variant-numeric:tabular-nums;font-size:12px}
+  #exp{background:#1e293b;color:#f8fafc;border-color:#1e293b}
+  #exp:hover{background:#0f172a}
+  #exp[disabled]{opacity:.55;cursor:progress}
+  main{padding:0 24px 32px}
+  #scroller{overflow:auto;border-radius:2px;cursor:grab;padding:48px;max-height:calc(100vh - 190px)}
+  #scroller.drag{cursor:grabbing;user-select:none}
+  #canvas{position:relative;flex:0 0 auto}
+  #poster{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;
+    background:var(--paper);color:#334155;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.45);overflow:hidden}
+  #poster svg{position:absolute;inset:0}
+  .curve{mix-blend-mode:multiply;transition:opacity .15s}
+  .peak{cursor:pointer;transition:opacity .15s}
+  .peak .hit{fill:transparent;pointer-events:all}
+  .ptip{position:absolute;display:none;pointer-events:none;z-index:9;
+    background:#1e293b;color:#f8fafc;font-family:var(--sans);font-size:11px;letter-spacing:.02em;
+    padding:5px 10px;border-radius:3px;border:1px solid rgba(15,23,42,.22);
+    white-space:nowrap;transform:translate(-50%,-120%);
+    box-shadow:0 8px 16px -6px rgba(0,0,0,.55)}
+  .ptip b{font-size:12px;margin:0 2px}
+  .lab{position:absolute;display:flex;align-items:flex-start;gap:7px;padding-top:4px;
+    font-family:var(--serif);cursor:pointer;transition:opacity .15s}
+  .lab .dot{flex:0 0 auto;width:9px;height:9px;border-radius:50%;margin-top:4px}
+  .lab .ttl{font-size:11.5px;line-height:1.25;color:#1e293b;display:-webkit-box;
+    -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .lab .meta{display:none}
+  .ylab{position:absolute;font-family:var(--sans);font-size:9.5px;color:#64748b;text-align:center}
+  .pnum{position:absolute;font-family:var(--sans);font-size:8.5px;color:#475569;text-align:center;opacity:.8}
+  .blk{position:absolute}
+  .blk .kick{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#64748b}
+  .blk h2{font-family:var(--serif);font-size:30px;line-height:1.06;color:#0f172a;margin:10px 0 0;font-weight:600}
+  .rule{height:1px;width:64px;background:#334155;margin-top:12px}
+  .para{position:absolute;font-family:var(--serif);font-size:11.5px;line-height:1.65;color:#475569;text-align:justify}
+  ul{list-style:none;margin:12px 0 0;padding:0}
+  ul li{display:flex;align-items:center;gap:8px;font-family:var(--serif);font-size:11.5px;color:#334155;margin-bottom:7px}
+  ul li .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  ul li b{font-family:var(--sans);font-size:10px;width:12px}
+  ul li em{margin-left:auto;font-style:normal;font-family:var(--sans);font-size:10px;color:#64748b}
+  .cap{position:absolute;font-size:9.5px;line-height:1.55;color:#475569}
+  .track{max-width:520px;margin:16px auto 0}
+  .track .bar{position:relative;height:6px;width:100%;border-radius:999px;background:rgba(71,85,105,.25)}
+  .track .bar i{position:absolute;top:0;height:100%;border-radius:999px;background:#1e293b}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="kicker">Field Notes · Vol. I</div>
+    <h1>增肌个体差异 · 研究图谱</h1>
+    <div class="sub">65 项研究 · 24 个年份（1997–2026）· 拖动横向浏览 · 悬停标题或年份山峰双向高亮 · 缩放 ⌘/Ctrl ＋ − 0</div>
+  </div>
+  <div class="btns">
+    <button id="prev" title="← 左箭头">← Prev</button>
+    <button id="next" title="→ 右箭头">Next →</button>
+    <span class="zdiv"></span>
+    <button id="zout" title="缩小：⌘/Ctrl + −">−</button>
+    <button id="zlevel" title="重置为 100%：⌘/Ctrl + 0">100%</button>
+    <button id="zin" title="放大：⌘/Ctrl + ＋">＋</button>
+    <span class="zdiv"></span>
+    <button id="exp" title="导出整张纸面为 PNG（2 倍分辨率，7200×2560）">⤓ 导出 PNG</button>
+  </div>
+</header>
+<main>
+  <div id="scroller" tabindex="0">
+   <div id="canvas" style="width:3600px;height:1280px">
+    <div id="poster" style="width:3600px;height:1280px">
+      <svg width="3600" height="1280" viewBox="0 0 3600 1280">
+        <defs>
+          <pattern id="hatch" width="10" height="9" patternUnits="userSpaceOnUse">
+            <path d="M0 8.5H10" stroke="#8d96ab" stroke-width="0.6"/>
+          </pattern>
+        </defs>
+        <!-- 底纹 · 逐年参考线 · 基线（见规范 §1） -->
+        <rect x="60" y="120" width="3480" height="940" fill="url(#hatch)" opacity="0.45"/>
+        <line x1="70.0" x2="70.0" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="220.4" x2="220.4" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="370.9" x2="370.9" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="521.3" x2="521.3" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="671.7" x2="671.7" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="822.2" x2="822.2" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="972.6" x2="972.6" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="1123.0" x2="1123.0" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="1273.5" x2="1273.5" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="1423.9" x2="1423.9" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="1574.3" x2="1574.3" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="1724.8" x2="1724.8" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="1875.2" x2="1875.2" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="2025.7" x2="2025.7" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="2176.1" x2="2176.1" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="2326.5" x2="2326.5" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="2477.0" x2="2477.0" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="2627.4" x2="2627.4" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="2777.8" x2="2777.8" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="2928.3" x2="2928.3" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="3078.7" x2="3078.7" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="3229.1" x2="3229.1" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="3379.6" x2="3379.6" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="3530.0" x2="3530.0" y1="120" y2="1050" stroke="#aab2c4" stroke-width="0.6" stroke-dasharray="2 5" opacity="0.55"/>
+        <line x1="30" x2="3570" y1="1050" y2="1050" stroke="#1f2b4d" stroke-width="1.5"/>
+        <line x1="30" x2="30" y1="120" y2="1050" stroke="#5c6680" stroke-width="0.8"/>
+        <!-- 连线：标题 → 年份（见规范 §4） -->
+        <g style="mix-blend-mode:multiply"><path class="curve" data-id="0" d="M79.0 162.0 C79.0 623.9, 70.0 623.9, 70.0 1001.8" stroke="#5fa39b" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="1" d="M79.0 218.0 C79.0 649.1, 220.4 649.1, 220.4 1001.8" stroke="#5fa39b" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="2" d="M79.0 274.0 C79.0 674.3, 370.9 674.3, 370.9 1001.8" stroke="#243a8f" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="3" d="M393.5 162.0 C393.5 623.9, 521.3 623.9, 521.3 1001.8" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="4" d="M393.5 218.0 C393.5 649.1, 671.7 649.1, 671.7 1001.8" stroke="#243a8f" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="5" d="M708.1 162.0 C708.1 623.9, 822.2 623.9, 822.2 1001.8" stroke="#243a8f" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="6" d="M708.1 218.0 C708.1 637.9, 972.6 637.9, 972.6 981.5" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="7" d="M708.1 274.0 C708.1 663.1, 972.6 663.1, 972.6 981.5" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="8" d="M1022.6 162.0 C1022.6 623.9, 1123.0 623.9, 1123.0 1001.8" stroke="#243a8f" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="9" d="M1022.6 218.0 C1022.6 626.8, 1273.5 626.8, 1273.5 961.3" stroke="#243a8f" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="10" d="M1022.6 274.0 C1022.6 652.0, 1273.5 652.0, 1273.5 961.3" stroke="#243a8f" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="11" d="M1022.6 330.0 C1022.6 677.2, 1273.5 677.2, 1273.5 961.3" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="12" d="M1337.2 162.0 C1337.2 601.6, 1423.9 601.6, 1423.9 961.3" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="13" d="M1337.2 218.0 C1337.2 626.8, 1423.9 626.8, 1423.9 961.3" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="14" d="M1337.2 274.0 C1337.2 652.0, 1423.9 652.0, 1423.9 961.3" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="15" d="M1337.2 330.0 C1337.2 666.0, 1574.3 666.0, 1574.3 941.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="16" d="M1337.2 386.0 C1337.2 691.3, 1574.3 691.3, 1574.3 941.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="17" d="M1337.2 442.0 C1337.2 716.5, 1574.3 716.5, 1574.3 941.0" stroke="#5fa39b" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="18" d="M1337.2 498.0 C1337.2 741.6, 1574.3 741.6, 1574.3 941.0" stroke="#5fa39b" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="19" d="M1651.7 162.0 C1651.7 623.9, 1724.8 623.9, 1724.8 1001.8" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="20" d="M1651.7 218.0 C1651.7 637.9, 1875.2 637.9, 1875.2 981.5" stroke="#8e2c24" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="21" d="M1651.7 274.0 C1651.7 663.1, 1875.2 663.1, 1875.2 981.5" stroke="#8e2c24" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="22" d="M1651.7 330.0 C1651.7 654.9, 2025.7 654.9, 2025.7 920.8" stroke="#243a8f" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="23" d="M1651.7 386.0 C1651.7 680.1, 2025.7 680.1, 2025.7 920.8" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="24" d="M1651.7 442.0 C1651.7 705.3, 2025.7 705.3, 2025.7 920.8" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="25" d="M1651.7 498.0 C1651.7 730.5, 2025.7 730.5, 2025.7 920.8" stroke="#5fa39b" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="26" d="M1651.7 554.0 C1651.7 755.7, 2025.7 755.7, 2025.7 920.8" stroke="#d4ad86" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="27" d="M1966.3 162.0 C1966.3 612.7, 2176.1 612.7, 2176.1 981.5" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="28" d="M1966.3 218.0 C1966.3 637.9, 2176.1 637.9, 2176.1 981.5" stroke="#8e2c24" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="29" d="M1966.3 274.0 C1966.3 596.3, 2326.5 596.3, 2326.5 860.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="30" d="M1966.3 330.0 C1966.3 621.5, 2326.5 621.5, 2326.5 860.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="31" d="M1966.3 386.0 C1966.3 646.7, 2326.5 646.7, 2326.5 860.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="32" d="M1966.3 442.0 C1966.3 671.9, 2326.5 671.9, 2326.5 860.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="33" d="M1966.3 498.0 C1966.3 697.1, 2326.5 697.1, 2326.5 860.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="34" d="M1966.3 554.0 C1966.3 722.3, 2326.5 722.3, 2326.5 860.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="35" d="M1966.3 610.0 C1966.3 747.5, 2326.5 747.5, 2326.5 860.0" stroke="#8e2c24" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="36" d="M1966.3 666.0 C1966.3 772.7, 2326.5 772.7, 2326.5 860.0" stroke="#d4ad86" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="37" d="M1966.3 722.0 C1966.3 842.5, 2627.4 842.5, 2627.4 941.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="38" d="M1966.3 778.0 C1966.3 867.6, 2627.4 867.6, 2627.4 941.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="39" d="M2280.8 442.0 C2280.8 705.3, 2477.0 705.3, 2477.0 920.8" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="40" d="M2280.8 498.0 C2280.8 730.5, 2477.0 730.5, 2477.0 920.8" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="41" d="M2280.8 554.0 C2280.8 755.7, 2477.0 755.7, 2477.0 920.8" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="42" d="M2280.8 610.0 C2280.8 780.9, 2477.0 780.9, 2477.0 920.8" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="43" d="M2280.8 666.0 C2280.8 806.1, 2477.0 806.1, 2477.0 920.8" stroke="#8e2c24" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="44" d="M2280.8 722.0 C2280.8 842.5, 2627.4 842.5, 2627.4 941.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="45" d="M2280.8 778.0 C2280.8 867.6, 2627.4 867.6, 2627.4 941.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="46" d="M2595.4 442.0 C2595.4 727.6, 2777.8 727.6, 2777.8 961.3" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="47" d="M2595.4 498.0 C2595.4 752.8, 2777.8 752.8, 2777.8 961.3" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="48" d="M2595.4 554.0 C2595.4 778.0, 2777.8 778.0, 2777.8 961.3" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="49" d="M2595.4 610.0 C2595.4 792.0, 2928.3 792.0, 2928.3 941.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="50" d="M2595.4 666.0 C2595.4 817.3, 2928.3 817.3, 2928.3 941.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="51" d="M2595.4 722.0 C2595.4 842.5, 2928.3 842.5, 2928.3 941.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="52" d="M2595.4 778.0 C2595.4 867.6, 2928.3 867.6, 2928.3 941.0" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="53" d="M2909.9 442.0 C2909.9 749.9, 3078.7 749.9, 3078.7 1001.8" stroke="#243a8f" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="54" d="M2909.9 498.0 C2909.9 763.9, 3229.1 763.9, 3229.1 981.5" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="55" d="M2909.9 554.0 C2909.9 789.1, 3229.1 789.1, 3229.1 981.5" stroke="#9fbfe3" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="56" d="M2909.9 610.0 C2909.9 803.2, 3530.0 803.2, 3530.0 961.3" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="57" d="M2909.9 666.0 C2909.9 828.4, 3530.0 828.4, 3530.0 961.3" stroke="#5fa39b" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="58" d="M3224.5 442.0 C3224.5 694.2, 3379.6 694.2, 3379.6 900.5" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="59" d="M3224.5 498.0 C3224.5 719.4, 3379.6 719.4, 3379.6 900.5" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="60" d="M3224.5 554.0 C3224.5 744.6, 3379.6 744.6, 3379.6 900.5" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="61" d="M3224.5 610.0 C3224.5 769.8, 3379.6 769.8, 3379.6 900.5" stroke="#4c64b5" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="62" d="M3224.5 666.0 C3224.5 795.0, 3379.6 795.0, 3379.6 900.5" stroke="#9fbfe3" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="63" d="M3224.5 722.0 C3224.5 820.2, 3379.6 820.2, 3379.6 900.5" stroke="#9fbfe3" stroke-width="1.1" opacity="0.5" fill="none"/><path class="curve" data-id="64" d="M3224.5 778.0 C3224.5 878.8, 3530.0 878.8, 3530.0 961.3" stroke="#243a8f" stroke-width="1.1" opacity="0.5" fill="none"/></g>
+        <!-- 山峰：高度 = 当年研究数量（见规范 §2） -->
+        <g class="peak" data-year="1997" data-n="1" data-col="#5fa39b" data-cx="70.0" data-cy="1001.8"><polygon points="70.0,1001.8 43.0,1050 97.0,1050" fill="#5fa39b" opacity="0.62"/><polygon points="70.0,1001.8 43.0,1050 97.0,1050" fill="none" stroke="#5fa39b" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="-5.2" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2004" data-n="1" data-col="#5fa39b" data-cx="220.4" data-cy="1001.8"><polygon points="220.4,1001.8 193.4,1050 247.4,1050" fill="#5fa39b" opacity="0.62"/><polygon points="220.4,1001.8 193.4,1050 247.4,1050" fill="none" stroke="#5fa39b" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="145.2" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2005" data-n="1" data-col="#243a8f" data-cx="370.9" data-cy="1001.8"><polygon points="370.9,1001.8 343.9,1050 397.9,1050" fill="#243a8f" opacity="0.62"/><polygon points="370.9,1001.8 343.9,1050 397.9,1050" fill="none" stroke="#243a8f" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="295.7" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2006" data-n="1" data-col="#4c64b5" data-cx="521.3" data-cy="1001.8"><polygon points="521.3,1001.8 494.3,1050 548.3,1050" fill="#4c64b5" opacity="0.62"/><polygon points="521.3,1001.8 494.3,1050 548.3,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="446.1" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2007" data-n="1" data-col="#243a8f" data-cx="671.7" data-cy="1001.8"><polygon points="671.7,1001.8 644.7,1050 698.7,1050" fill="#243a8f" opacity="0.62"/><polygon points="671.7,1001.8 644.7,1050 698.7,1050" fill="none" stroke="#243a8f" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="596.5" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2008" data-n="1" data-col="#243a8f" data-cx="822.2" data-cy="1001.8"><polygon points="822.2,1001.8 795.2,1050 849.2,1050" fill="#243a8f" opacity="0.62"/><polygon points="822.2,1001.8 795.2,1050 849.2,1050" fill="none" stroke="#243a8f" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="747.0" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2009" data-n="2" data-col="#4c64b5" data-cx="972.6" data-cy="981.5"><polygon points="972.6,981.5 945.6,1050 999.6,1050" fill="#4c64b5" opacity="0.62"/><polygon points="972.6,981.5 945.6,1050 999.6,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="897.4" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2010" data-n="1" data-col="#243a8f" data-cx="1123.0" data-cy="1001.8"><polygon points="1123.0,1001.8 1096.0,1050 1150.0,1050" fill="#243a8f" opacity="0.62"/><polygon points="1123.0,1001.8 1096.0,1050 1150.0,1050" fill="none" stroke="#243a8f" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="1047.8" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2011" data-n="3" data-col="#243a8f" data-cx="1273.5" data-cy="961.3"><polygon points="1273.5,961.3 1246.5,1050 1300.5,1050" fill="#243a8f" opacity="0.62"/><polygon points="1273.5,961.3 1246.5,1050 1300.5,1050" fill="none" stroke="#243a8f" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="1198.3" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2012" data-n="3" data-col="#4c64b5" data-cx="1423.9" data-cy="961.3"><polygon points="1423.9,961.3 1396.9,1050 1450.9,1050" fill="#4c64b5" opacity="0.62"/><polygon points="1423.9,961.3 1396.9,1050 1450.9,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="1348.7" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2013" data-n="4" data-col="#4c64b5" data-cx="1574.3" data-cy="941.0"><polygon points="1574.3,941.0 1547.3,1050 1601.3,1050" fill="#4c64b5" opacity="0.62"/><polygon points="1574.3,941.0 1547.3,1050 1601.3,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="1499.1" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2014" data-n="1" data-col="#4c64b5" data-cx="1724.8" data-cy="1001.8"><polygon points="1724.8,1001.8 1697.8,1050 1751.8,1050" fill="#4c64b5" opacity="0.62"/><polygon points="1724.8,1001.8 1697.8,1050 1751.8,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="1649.6" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2015" data-n="2" data-col="#8e2c24" data-cx="1875.2" data-cy="981.5"><polygon points="1875.2,981.5 1848.2,1050 1902.2,1050" fill="#8e2c24" opacity="0.62"/><polygon points="1875.2,981.5 1848.2,1050 1902.2,1050" fill="none" stroke="#8e2c24" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="1800.0" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2016" data-n="5" data-col="#4c64b5" data-cx="2025.7" data-cy="920.8"><polygon points="2025.7,920.8 1998.7,1050 2052.7,1050" fill="#4c64b5" opacity="0.62"/><polygon points="2025.7,920.8 1998.7,1050 2052.7,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="1950.4" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2017" data-n="2" data-col="#4c64b5" data-cx="2176.1" data-cy="981.5"><polygon points="2176.1,981.5 2149.1,1050 2203.1,1050" fill="#4c64b5" opacity="0.62"/><polygon points="2176.1,981.5 2149.1,1050 2203.1,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="2100.9" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2018" data-n="8" data-col="#4c64b5" data-cx="2326.5" data-cy="860.0"><polygon points="2326.5,860.0 2299.5,1050 2353.5,1050" fill="#4c64b5" opacity="0.62"/><polygon points="2326.5,860.0 2299.5,1050 2353.5,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="2251.3" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2019" data-n="5" data-col="#4c64b5" data-cx="2477.0" data-cy="920.8"><polygon points="2477.0,920.8 2450.0,1050 2504.0,1050" fill="#4c64b5" opacity="0.62"/><polygon points="2477.0,920.8 2450.0,1050 2504.0,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="2401.7" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2020" data-n="4" data-col="#4c64b5" data-cx="2627.4" data-cy="941.0"><polygon points="2627.4,941.0 2600.4,1050 2654.4,1050" fill="#4c64b5" opacity="0.62"/><polygon points="2627.4,941.0 2600.4,1050 2654.4,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="2552.2" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2021" data-n="3" data-col="#4c64b5" data-cx="2777.8" data-cy="961.3"><polygon points="2777.8,961.3 2750.8,1050 2804.8,1050" fill="#4c64b5" opacity="0.62"/><polygon points="2777.8,961.3 2750.8,1050 2804.8,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="2702.6" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2022" data-n="4" data-col="#4c64b5" data-cx="2928.3" data-cy="941.0"><polygon points="2928.3,941.0 2901.3,1050 2955.3,1050" fill="#4c64b5" opacity="0.62"/><polygon points="2928.3,941.0 2901.3,1050 2955.3,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="2853.0" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2023" data-n="1" data-col="#243a8f" data-cx="3078.7" data-cy="1001.8"><polygon points="3078.7,1001.8 3051.7,1050 3105.7,1050" fill="#243a8f" opacity="0.62"/><polygon points="3078.7,1001.8 3051.7,1050 3105.7,1050" fill="none" stroke="#243a8f" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="3003.5" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2024" data-n="2" data-col="#4c64b5" data-cx="3229.1" data-cy="981.5"><polygon points="3229.1,981.5 3202.1,1050 3256.1,1050" fill="#4c64b5" opacity="0.62"/><polygon points="3229.1,981.5 3202.1,1050 3256.1,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="3153.9" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2025" data-n="6" data-col="#4c64b5" data-cx="3379.6" data-cy="900.5"><polygon points="3379.6,900.5 3352.6,1050 3406.6,1050" fill="#4c64b5" opacity="0.62"/><polygon points="3379.6,900.5 3352.6,1050 3406.6,1050" fill="none" stroke="#4c64b5" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="3304.3" y="838" width="150.4" height="246"/></g>
+        <g class="peak" data-year="2026" data-n="3" data-col="#243a8f" data-cx="3530.0" data-cy="961.3"><polygon points="3530.0,961.3 3503.0,1050 3557.0,1050" fill="#243a8f" opacity="0.62"/><polygon points="3530.0,961.3 3503.0,1050 3557.0,1050" fill="none" stroke="#243a8f" stroke-width="0.9" opacity="0.9"/><rect class="hit" x="3454.8" y="838" width="150.4" height="246"/></g>
+      </svg>
+
+      <!-- 研究标题层（见规范 §3） -->
+      
+  <div class="lab" data-id="0" style="left:70px;top:150px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#5fa39b"></span>
+    <span class="ttl">Genetic influences on muscle strength, lean body mass, and bone mineral density: a twin study.</span>
+    <span class="meta">1997 · J Bone Miner Res · Arden NK</span>
+  </div>
+  <div class="lab" data-id="1" style="left:70px;top:206px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#5fa39b"></span>
+    <span class="ttl">Myostatin mutation associated with gross muscle hypertrophy in a child.</span>
+    <span class="meta">2004 · N Engl J Med · Schuelke M</span>
+  </div>
+  <div class="lab" data-id="2" style="left:70px;top:262px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#243a8f"></span>
+    <span class="ttl">Variability in muscle size and strength gain after unilateral resistance training.</span>
+    <span class="meta">2005 · Med Sci Sports Exerc · Hubal MJ</span>
+  </div>
+  <div class="lab" data-id="3" style="left:384.54545454545456px;top:150px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Efficacy of myonuclear addition may explain differential myofiber growth among resistance-trained young and older men and women</span>
+    <span class="meta">2006 · American Journal of Physiology-Endocrinology and Metabolism · John K. Petrella</span>
+  </div>
+  <div class="lab" data-id="4" style="left:384.54545454545456px;top:206px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#243a8f"></span>
+    <span class="ttl">Cluster analysis tests the importance of myogenic gene expression during myofiber hypertrophy in humans.</span>
+    <span class="meta">2007 · J Appl Physiol (1985) · Bamman MM</span>
+  </div>
+  <div class="lab" data-id="5" style="left:699.0909090909091px;top:150px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#243a8f"></span>
+    <span class="ttl">Potent myofiber hypertrophy during resistance training in humans is associated with satellite cell-mediated myonuclear addition: a cluster analysis.</span>
+    <span class="meta">2008 · J Appl Physiol (1985) · Petrella JK</span>
+  </div>
+  <div class="lab" data-id="6" style="left:699.0909090909091px;top:206px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Does habitual dietary intake influence myofiber hypertrophy in response to resistance training? A cluster analysis</span>
+    <span class="meta">2009 · Applied Physiology, Nutrition, and Metabolism · Anna E. Thalacker-Mercer</span>
+  </div>
+  <div class="lab" data-id="7" style="left:699.0909090909091px;top:262px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Translational signaling responses preceding resistance training-mediated myofiber hypertrophy in young and old humans.</span>
+    <span class="meta">2009 · J Appl Physiol (1985) · Mayhew DL</span>
+  </div>
+  <div class="lab" data-id="8" style="left:1013.6363636363637px;top:150px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#243a8f"></span>
+    <span class="ttl">Inter-individual variability in the adaptation of human muscle specific tension to progressive resistance training.</span>
+    <span class="meta">2010 · Eur J Appl Physiol · Erskine RM</span>
+  </div>
+  <div class="lab" data-id="9" style="left:1013.6363636363637px;top:206px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#243a8f"></span>
+    <span class="ttl">High responders to resistance exercise training demonstrate differential regulation of skeletal muscle microRNA expression.</span>
+    <span class="meta">2011 · J Appl Physiol (1985) · Davidsen PK</span>
+  </div>
+  <div class="lab" data-id="10" style="left:1013.6363636363637px;top:262px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#243a8f"></span>
+    <span class="ttl">Variability in training-induced skeletal muscle adaptation.</span>
+    <span class="meta">2011 · J Appl Physiol (1985) · Timmons JA</span>
+  </div>
+  <div class="lab" data-id="11" style="left:1013.6363636363637px;top:318px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Progression of volume load and muscular adaptation during resistance exercise.</span>
+    <span class="meta">2011 · Eur J Appl Physiol · Peterson MD</span>
+  </div>
+  <div class="lab" data-id="12" style="left:1328.1818181818182px;top:150px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Genetic aspects of skeletal muscle strength and mass with relevance to sarcopenia.</span>
+    <span class="meta">2012 · Bonekey Rep · Roth SM</span>
+  </div>
+  <div class="lab" data-id="13" style="left:1328.1818181818182px;top:206px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Laser capture microdissection of metachromatically stained skeletal muscle allows quantification of fiber type specific gene expression</span>
+    <span class="meta">2012 · Molecular and Cellular Biochemistry · Charles R. Vanderburg</span>
+  </div>
+  <div class="lab" data-id="14" style="left:1328.1818181818182px;top:262px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Making preventive medicine more personalized: implications for exercise-related research.</span>
+    <span class="meta">2012 · Prev Med · Buford TW</span>
+  </div>
+  <div class="lab" data-id="15" style="left:1328.1818181818182px;top:318px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Cluster analysis reveals differential transcript profiles associated with resistance training-induced human skeletal muscle hypertrophy.</span>
+    <span class="meta">2013 · Physiol Genomics · Thalacker-Mercer A</span>
+  </div>
+  <div class="lab" data-id="16" style="left:1328.1818181818182px;top:374px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Muscular and systemic correlates of resistance training-induced muscle hypertrophy.</span>
+    <span class="meta">2013 · PLoS One · Mitchell CJ</span>
+  </div>
+  <div class="lab" data-id="17" style="left:1328.1818181818182px;top:430px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#5fa39b"></span>
+    <span class="ttl">Alterations in osteopontin modify muscle size in females in both humans and mice.</span>
+    <span class="meta">2013 · Med Sci Sports Exerc · Hoffman EP</span>
+  </div>
+  <div class="lab" data-id="18" style="left:1328.1818181818182px;top:486px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#5fa39b"></span>
+    <span class="ttl">Molecular networks of human muscle adaptation to exercise and age.</span>
+    <span class="meta">2013 · PLoS Genet · Phillips BE</span>
+  </div>
+  <div class="lab" data-id="19" style="left:1642.7272727272727px;top:150px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">The acute satellite cell response and skeletal muscle hypertrophy following resistance training.</span>
+    <span class="meta">2014 · PLoS One · Bellamy LM</span>
+  </div>
+  <div class="lab" data-id="20" style="left:1642.7272727272727px;top:206px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#8e2c24"></span>
+    <span class="ttl">Individual response to exercise training - a statistical perspective.</span>
+    <span class="meta">2015 · J Appl Physiol (1985) · Hecksteden A</span>
+  </div>
+  <div class="lab" data-id="21" style="left:1642.7272727272727px;top:262px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#8e2c24"></span>
+    <span class="ttl">True and false interindividual differences in the physiological response to an intervention.</span>
+    <span class="meta">2015 · Exp Physiol · Atkinson G</span>
+  </div>
+  <div class="lab" data-id="22" style="left:1642.7272727272727px;top:318px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#243a8f"></span>
+    <span class="ttl">Heterogeneity in resistance training-induced muscle strength and mass responses in men and women of different ages.</span>
+    <span class="meta">2016 · Age (Dordr) · Ahtiainen JP</span>
+  </div>
+  <div class="lab" data-id="23" style="left:1642.7272727272727px;top:374px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Heritability estimates of muscle strength‐related phenotypes: A systematic review and meta‐analysis</span>
+    <span class="meta">2016 · Scandinavian Journal of Medicine &amp;amp; Science in Sports · H. Zempo</span>
+  </div>
+  <div class="lab" data-id="24" style="left:1642.7272727272727px;top:430px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Ribosome biogenesis may augment resistance training-induced myofiber hypertrophy and is required for myotube growth in vitro.</span>
+    <span class="meta">2016 · Am J Physiol Endocrinol Metab · Stec MJ</span>
+  </div>
+  <div class="lab" data-id="25" style="left:1642.7272727272727px;top:486px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#5fa39b"></span>
+    <span class="ttl">Contribution of Heritability and Epigenetic Factors to Skeletal Muscle Mass Variation in United Kingdom Twins.</span>
+    <span class="meta">2016 · J Clin Endocrinol Metab · Livshits G</span>
+  </div>
+  <div class="lab" data-id="26" style="left:1642.7272727272727px;top:542px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#d4ad86"></span>
+    <span class="ttl">Effects of Resistance Training Frequency on Measures of Muscle Hypertrophy: A Systematic Review and Meta-Analysis</span>
+    <span class="meta">2016 · Sports Medicine · Brad J. Schoenfeld</span>
+  </div>
+  <div class="lab" data-id="27" style="left:1957.2727272727275px;top:150px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Muscle size and strength: another study not designed to answer the question</span>
+    <span class="meta">2017 · European Journal of Applied Physiology · Samuel L. Buckner</span>
+  </div>
+  <div class="lab" data-id="28" style="left:1957.2727272727275px;top:206px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#8e2c24"></span>
+    <span class="ttl">Refuting the myth of non-response to exercise training: 'non-responders' do respond to higher dose of training.</span>
+    <span class="meta">2017 · J Physiol · Montero D</span>
+  </div>
+  <div class="lab" data-id="29" style="left:1957.2727272727275px;top:262px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Biomarkers associated with low, moderate, and high vastus lateralis muscle hypertrophy following 12 weeks of resistance training.</span>
+    <span class="meta">2018 · PLoS One · Mobley CB</span>
+  </div>
+  <div class="lab" data-id="30" style="left:1957.2727272727275px;top:318px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Muscle Androgen Receptor Content but Not Systemic Hormones Is Associated With Resistance Training-Induced Skeletal Muscle Hypertrophy in Healthy, Young Men.</span>
+    <span class="meta">2018 · Front Physiol · Morton RW</span>
+  </div>
+  <div class="lab" data-id="31" style="left:1957.2727272727275px;top:374px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Myonuclear Domain Flexibility Challenges Rigid Assumptions on Satellite Cell Contribution to Skeletal Muscle Fiber Hypertrophy</span>
+    <span class="meta">2018 · Frontiers in Physiology · Kevin A. Murach</span>
+  </div>
+  <div class="lab" data-id="32" style="left:1957.2727272727275px;top:430px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Physiological Differences Between Low Versus High Skeletal Muscle Hypertrophic Responders to Resistance Exercise Training: Current Perspectives and Future Research Directions.</span>
+    <span class="meta">2018 · Front Physiol · Roberts MD</span>
+  </div>
+  <div class="lab" data-id="33" style="left:1957.2727272727275px;top:486px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Protein Availability and Satellite Cell Dynamics in Skeletal Muscle</span>
+    <span class="meta">2018 · Sports Medicine · Baubak Shamim</span>
+  </div>
+  <div class="lab" data-id="34" style="left:1957.2727272727275px;top:542px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Resistance training in young men induces muscle transcriptome-wide changes associated with muscle structure and metabolism refining the response to exercise-induced stress</span>
+    <span class="meta">2018 · European Journal of Applied Physiology · Felipe Damas</span>
+  </div>
+  <div class="lab" data-id="35" style="left:1957.2727272727275px;top:598px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#8e2c24"></span>
+    <span class="ttl">A Statistical Framework to Interpret Individual Response to Intervention: Paving the Way for Personalized Nutrition and Exercise Prescription.</span>
+    <span class="meta">2018 · Front Nutr · Swinton PA</span>
+  </div>
+  <div class="lab" data-id="36" style="left:1957.2727272727275px;top:654px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#d4ad86"></span>
+    <span class="ttl">Molecular Regulation of Exercise-Induced Muscle Fiber Hypertrophy.</span>
+    <span class="meta">2018 · Cold Spring Harb Perspect Med · Bamman MM</span>
+  </div>
+  <div class="lab" data-id="37" style="left:1957.2727272727275px;top:710px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Effects of resistance training with controlled versus self-selected repetition duration on muscle mass and strength in untrained men.</span>
+    <span class="meta">2020 · PeerJ · Chaves TS</span>
+  </div>
+  <div class="lab" data-id="38" style="left:1957.2727272727275px;top:766px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Ribosome biogenesis and resistance training volume in human skeletal muscle</span>
+    <span class="meta">2020 · The Journal of Physiology · Robert Solsona</span>
+  </div>
+  <div class="lab" data-id="39" style="left:2271.818181818182px;top:430px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Benefits of higher resistance-training volume depends on ribosome biogenesis</span>
+    <span class="meta">2019 ·  · Daniel Hammarström</span>
+  </div>
+  <div class="lab" data-id="40" style="left:2271.818181818182px;top:486px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Myofibrillar protein synthesis and muscle hypertrophy individualized responses to systematically changing resistance training variables in trained young men</span>
+    <span class="meta">2019 · Journal of Applied Physiology · Felipe Damas</span>
+  </div>
+  <div class="lab" data-id="41" style="left:2271.818181818182px;top:542px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Pre-training Skeletal Muscle Fiber Size and Predominant Fiber Type Best Predict Hypertrophic Responses to 6 Weeks of Resistance Training in Previously Trained Young Men.</span>
+    <span class="meta">2019 · Front Physiol · Haun CT</span>
+  </div>
+  <div class="lab" data-id="42" style="left:2271.818181818182px;top:598px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">The Importance of Resistance Exercise Training to Combat Neuromuscular Aging.</span>
+    <span class="meta">2019 · Physiology (Bethesda) · Lavin KM</span>
+  </div>
+  <div class="lab" data-id="43" style="left:2271.818181818182px;top:654px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#8e2c24"></span>
+    <span class="ttl">Do Non-Responders to Exercise Exist-and If So, What Should We Do About Them?</span>
+    <span class="meta">2019 · Sports Med · Pickering C</span>
+  </div>
+  <div class="lab" data-id="44" style="left:2271.818181818182px;top:710px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Assessing differential responders and mean changes in muscle size, strength, and the crossover effect to 2 distinct resistance training protocols</span>
+    <span class="meta">2020 · Applied Physiology, Nutrition, and Metabolism · Scott J. Dankel</span>
+  </div>
+  <div class="lab" data-id="45" style="left:2271.818181818182px;top:766px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Benefits of higher resistance‐training volume are related to ribosome biogenesis</span>
+    <span class="meta">2020 · The Journal of Physiology · Daniel Hammarström</span>
+  </div>
+  <div class="lab" data-id="46" style="left:2586.3636363636365px;top:430px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Myofibre Hypertrophy in the Absence of Changes to Satellite Cell Content Following Concurrent Exercise Training in Young Healthy Men</span>
+    <span class="meta">2021 · Frontiers in Physiology · Baubak Shamim</span>
+  </div>
+  <div class="lab" data-id="47" style="left:2586.3636363636365px;top:486px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Satellite cell and myonuclear accretion is related to training-induced skeletal muscle fiber hypertrophy in young males and females</span>
+    <span class="meta">2021 · Journal of Applied Physiology · Sidney Abou Sawan</span>
+  </div>
+  <div class="lab" data-id="48" style="left:2586.3636363636365px;top:542px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Strength Training Volume to Increase Muscle Mass Responsiveness in Older Individuals: Weekly Sets Based Approach.</span>
+    <span class="meta">2021 · Front Physiol · de Santana DA</span>
+  </div>
+  <div class="lab" data-id="49" style="left:2586.3636363636365px;top:598px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Changes in vastus lateralis fibre cross-sectional area, pennation angle and fascicle length do not predict changes in muscle cross-sectional area.</span>
+    <span class="meta">2022 · Exp Physiol · Ruple BA</span>
+  </div>
+  <div class="lab" data-id="50" style="left:2586.3636363636365px;top:654px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Myonuclear addition is associated with sex-specific fiber hypertrophy and occurs in relation to fiber perimeter not cross-sectional area</span>
+    <span class="meta">2022 · Journal of Applied Physiology · Lukas Moesgaard</span>
+  </div>
+  <div class="lab" data-id="51" style="left:2586.3636363636365px;top:710px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Ribosome accumulation during early phase resistance training in humans.</span>
+    <span class="meta">2022 · Acta Physiol (Oxf) · Hammarström D</span>
+  </div>
+  <div class="lab" data-id="52" style="left:2586.3636363636365px;top:766px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Stubborn Exercise Responders–Where to Next?</span>
+    <span class="meta">2022 · Sports · Leo R. Bell</span>
+  </div>
+  <div class="lab" data-id="53" style="left:2900.909090909091px;top:430px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#243a8f"></span>
+    <span class="ttl">Can muscle typology explain the inter-individual variability in resistance training adaptations?</span>
+    <span class="meta">2023 · J Physiol · Van Vossel K</span>
+  </div>
+  <div class="lab" data-id="54" style="left:2900.909090909091px;top:486px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Effects of individualized resistance training prescription with heart rate variability on muscle strength, muscle size and functional performance in older women.</span>
+    <span class="meta">2024 · Front Physiol · Bittencourt D</span>
+  </div>
+  <div class="lab" data-id="55" style="left:2900.909090909091px;top:542px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#9fbfe3"></span>
+    <span class="ttl">Higher resistance training volume offsets muscle hypertrophy nonresponsiveness in older individuals.</span>
+    <span class="meta">2024 · J Appl Physiol (1985) · Lixandrão ME</span>
+  </div>
+  <div class="lab" data-id="56" style="left:2900.909090909091px;top:598px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Ribosome Biogenesis as a Putative Bottleneck to Skeletal Muscle Hypertrophy: Mechanisms, Human Evidence, and Practical Modulators</span>
+    <span class="meta">2026 · Cells · Mario Muñoz López</span>
+  </div>
+  <div class="lab" data-id="57" style="left:2900.909090909091px;top:654px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#5fa39b"></span>
+    <span class="ttl">Genome‐Wide Association Study of Lean Body Mass Response to Resistance Training in Young Asians</span>
+    <span class="meta">2026 · Journal of Cachexia, Sarcopenia and Muscle · Zhuangzhuang Gu</span>
+  </div>
+  <div class="lab" data-id="58" style="left:3215.4545454545455px;top:430px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Global skeletal muscle metabolomics reveals mechanisms behind higher response to resistance training in older adults</span>
+    <span class="meta">2025 ·  · Changhyun Lim</span>
+  </div>
+  <div class="lab" data-id="59" style="left:3215.4545454545455px;top:486px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Muscle quality responses to short-term resistance training volume in older adults: an exploratory clinical trial.</span>
+    <span class="meta">2025 · Front Aging · Knowles KS</span>
+  </div>
+  <div class="lab" data-id="60" style="left:3215.4545454545455px;top:542px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Muscle Strength and Size Relationships with Unilateral Progressive Resistance Training</span>
+    <span class="meta">2025 ·  · Donald D. Deiwert</span>
+  </div>
+  <div class="lab" data-id="61" style="left:3215.4545454545455px;top:598px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#4c64b5"></span>
+    <span class="ttl">Within-individual design for assessing true individual responses in resistance training-induced muscle hypertrophy.</span>
+    <span class="meta">2025 · Front Sports Act Living · Chaves TS</span>
+  </div>
+  <div class="lab" data-id="62" style="left:3215.4545454545455px;top:654px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#9fbfe3"></span>
+    <span class="ttl">Repeated Resistance Training Reveals the Reproducibility of Muscle Strength and Size Responses Within Individuals.</span>
+    <span class="meta">2025 · Eur J Sport Sci · Räntilä A</span>
+  </div>
+  <div class="lab" data-id="63" style="left:3215.4545454545455px;top:710px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#9fbfe3"></span>
+    <span class="ttl">Resistance training load does not determine resistance training-induced hypertrophy across upper and lower limbs in healthy young males.</span>
+    <span class="meta">2025 · J Physiol · Lees MJ</span>
+  </div>
+  <div class="lab" data-id="64" style="left:3215.4545454545455px;top:766px;width:298.54545454545456px;height:56px">
+    <span class="dot" style="background:#243a8f"></span>
+    <span class="ttl">Heavy resistance exercise training in older men: A responder and inter-individual variability analysis.</span>
+    <span class="meta">2026 · PLoS One · Soendenbroe C</span>
+  </div>
+      <!-- 年份刻度与峰顶计数 -->
+      <div class="ylab" style="left:44.0px;top:1064px;width:52px">1997</div>
+      <div class="ylab" style="left:194.4px;top:1064px;width:52px">2004</div>
+      <div class="ylab" style="left:344.9px;top:1064px;width:52px">2005</div>
+      <div class="ylab" style="left:495.3px;top:1064px;width:52px">2006</div>
+      <div class="ylab" style="left:645.7px;top:1064px;width:52px">2007</div>
+      <div class="ylab" style="left:796.2px;top:1064px;width:52px">2008</div>
+      <div class="ylab" style="left:946.6px;top:1064px;width:52px">2009</div>
+      <div class="ylab" style="left:1097.0px;top:1064px;width:52px">2010</div>
+      <div class="ylab" style="left:1247.5px;top:1064px;width:52px">2011</div>
+      <div class="ylab" style="left:1397.9px;top:1064px;width:52px">2012</div>
+      <div class="ylab" style="left:1548.3px;top:1064px;width:52px">2013</div>
+      <div class="ylab" style="left:1698.8px;top:1064px;width:52px">2014</div>
+      <div class="ylab" style="left:1849.2px;top:1064px;width:52px">2015</div>
+      <div class="ylab" style="left:1999.7px;top:1064px;width:52px">2016</div>
+      <div class="ylab" style="left:2150.1px;top:1064px;width:52px">2017</div>
+      <div class="ylab" style="left:2300.5px;top:1064px;width:52px">2018</div>
+      <div class="ylab" style="left:2451.0px;top:1064px;width:52px">2019</div>
+      <div class="ylab" style="left:2601.4px;top:1064px;width:52px">2020</div>
+      <div class="ylab" style="left:2751.8px;top:1064px;width:52px">2021</div>
+      <div class="ylab" style="left:2902.3px;top:1064px;width:52px">2022</div>
+      <div class="ylab" style="left:3052.7px;top:1064px;width:52px">2023</div>
+      <div class="ylab" style="left:3203.1px;top:1064px;width:52px">2024</div>
+      <div class="ylab" style="left:3353.6px;top:1064px;width:52px">2025</div>
+      <div class="ylab" style="left:3504.0px;top:1064px;width:52px">2026</div>
+      <div class="pnum" style="left:54.0px;top:985.8px;width:32px">1</div>
+      <div class="pnum" style="left:204.4px;top:985.8px;width:32px">1</div>
+      <div class="pnum" style="left:354.9px;top:985.8px;width:32px">1</div>
+      <div class="pnum" style="left:505.3px;top:985.8px;width:32px">1</div>
+      <div class="pnum" style="left:655.7px;top:985.8px;width:32px">1</div>
+      <div class="pnum" style="left:806.2px;top:985.8px;width:32px">1</div>
+      <div class="pnum" style="left:956.6px;top:965.5px;width:32px">2</div>
+      <div class="pnum" style="left:1107.0px;top:985.8px;width:32px">1</div>
+      <div class="pnum" style="left:1257.5px;top:945.3px;width:32px">3</div>
+      <div class="pnum" style="left:1407.9px;top:945.3px;width:32px">3</div>
+      <div class="pnum" style="left:1558.3px;top:925.0px;width:32px">4</div>
+      <div class="pnum" style="left:1708.8px;top:985.8px;width:32px">1</div>
+      <div class="pnum" style="left:1859.2px;top:965.5px;width:32px">2</div>
+      <div class="pnum" style="left:2009.7px;top:904.8px;width:32px">5</div>
+      <div class="pnum" style="left:2160.1px;top:965.5px;width:32px">2</div>
+      <div class="pnum" style="left:2310.5px;top:844.0px;width:32px">8</div>
+      <div class="pnum" style="left:2461.0px;top:904.8px;width:32px">5</div>
+      <div class="pnum" style="left:2611.4px;top:925.0px;width:32px">4</div>
+      <div class="pnum" style="left:2761.8px;top:945.3px;width:32px">3</div>
+      <div class="pnum" style="left:2912.3px;top:925.0px;width:32px">4</div>
+      <div class="pnum" style="left:3062.7px;top:985.8px;width:32px">1</div>
+      <div class="pnum" style="left:3213.1px;top:965.5px;width:32px">2</div>
+      <div class="pnum" style="left:3363.6px;top:884.5px;width:32px">6</div>
+      <div class="pnum" style="left:3514.0px;top:945.3px;width:32px">3</div>
+      <!-- 悬停提示：背景取山峰颜色 -->
+      <div class="ptip" id="ptip"></div>
+
+      <!-- 标题 + 正文 + 图例：右上角保留区，坐标与常量 HEADER 对应 -->
+      <div class="blk" style="left:2280px;top:56px;width:250px">
+        <div class="kick">Chapter I</div>
+        <h2>增肌<br/>个体差异</h2>
+        <div class="rule"></div>
+      </div>
+      <p class="para" style="left:2570px;top:60px;width:210px">
+        同一套训练方案下，有人肌纤维横截面积增长近六成，有人几乎纹丝不动。这张纸面把关于「为什么」的研究按主题铺开，
+        每一条标题前的小圆点代表它的类别，下方以曲线牵引到它问世的年份。
+      </p>
+      <p class="para" style="left:2810px;top:60px;width:205px">
+        底部横轴为发表年份。每年的研究越多，山峰（三角形）越高，峰顶数字即当年研究条数——
+        整条山脊勾出这个领域从小样本观察到机制与剂量研究的积累过程。
+      </p>
+      <div class="blk" style="left:3050px;top:56px;width:250px">
+        <div class="kick">Legend · 分类</div>
+        <ul>
+  <li><span class="dot" style="background:#243a8f"></span>
+  <b>A</b><span>描述性研究 · 个体差异的分布</span><em>9</em></li>
+  <li><span class="dot" style="background:#4c64b5"></span>
+  <b>B</b><span>机制研究 · 高/低反应者差异</span><em>40</em></li>
+  <li><span class="dot" style="background:#9fbfe3"></span>
+  <b>C</b><span>剂量依赖与可重复性</span><em>3</em></li>
+  <li><span class="dot" style="background:#5fa39b"></span>
+  <b>D</b><span>遗传学与可遗传性</span><em>6</em></li>
+  <li><span class="dot" style="background:#8e2c24"></span>
+  <b>E</b><span>方法学批评</span><em>5</em></li>
+  <li><span class="dot" style="background:#d4ad86"></span>
+  <b>F</b><span>综述 / 荟萃分析</span><em>2</em></li>
+        </ul>
+      </div>
+
+      <!-- 图注 -->
+      <p class="cap" style="left:40px;top:1218px;width:560px">
+        Fig. 1 — 增肌个体差异研究分布图，依 65 项已核对文献绘制。曲线由研究标题连至发表年份；
+        三角形高度对应当年研究数量（峰值 8 项）。G 类（待核实）与非研究类来源不计入。
+      </p>
+      <p class="cap" style="left:2780px;top:1218px;width:520px;text-align:right">
+        年份轴 · 仅收录有文献问世的 24 个年份（1997–2026）；
+        空白年份已略去，故横轴间距不等距。
+      </p>
+    </div>
+   </div>
+  </div>
+  <div class="track"><div class="bar"><i id="knob" style="width:10%;left:0"></i></div></div>
+</main>
+<script>
+/* 运行时结构（完整设计规范见文件头注释）
+   YEAR_IDS  年份 → 该年研究 id[]        ID_YEAR  研究 id → 年份
+   focus(Set)       统一驱动曲线/标题的淡入淡出
+   dimPeaks(year)   只留该年山峰，其余淡到 .18
+   showTip(y,cx,cy,col)  峰顶浮层，背景取山峰颜色，文字按亮度自适应
+   applyZoom(s,clientX)  以锚点不动的方式缩放，范围 .4–2.4
+   改动交互时请同步更新文件头的 §6 / §7                                   */
+(function(){
+  var sc=document.getElementById('scroller'), po=document.getElementById('poster');
+  var cv=document.getElementById('canvas');
+  var knob=document.getElementById('knob');
+  var zlevel=document.getElementById('zlevel');
+  var curves=[].slice.call(document.querySelectorAll('.curve'));
+  var labs=[].slice.call(document.querySelectorAll('.lab'));
+  var peaks=[].slice.call(document.querySelectorAll('.peak'));
+  var tip=document.getElementById('ptip');
+  var YEAR_IDS={"1997":[0],"2004":[1],"2005":[2],"2006":[3],"2007":[4],"2008":[5],"2009":[6,7],"2010":[8],"2011":[9,10,11],"2012":[12,13,14],"2013":[15,16,17,18],"2014":[19],"2015":[20,21],"2016":[22,23,24,25,26],"2017":[27,28],"2018":[29,30,31,32,33,34,35,36],"2019":[39,40,41,42,43],"2020":[37,38,44,45],"2021":[46,47,48],"2022":[49,50,51,52],"2023":[53],"2024":[54,55],"2025":[58,59,60,61,62,63],"2026":[56,57,64]};
+  var ID_YEAR={"0":1997,"1":2004,"2":2005,"3":2006,"4":2007,"5":2008,"6":2009,"7":2009,"8":2010,"9":2011,"10":2011,"11":2011,"12":2012,"13":2012,"14":2012,"15":2013,"16":2013,"17":2013,"18":2013,"19":2014,"20":2015,"21":2015,"22":2016,"23":2016,"24":2016,"25":2016,"26":2016,"27":2017,"28":2017,"29":2018,"30":2018,"31":2018,"32":2018,"33":2018,"34":2018,"35":2018,"36":2018,"37":2020,"38":2020,"39":2019,"40":2019,"41":2019,"42":2019,"43":2019,"44":2020,"45":2020,"46":2021,"47":2021,"48":2021,"49":2022,"50":2022,"51":2022,"52":2022,"53":2023,"54":2024,"55":2024,"56":2026,"57":2026,"58":2025,"59":2025,"60":2025,"61":2025,"62":2025,"63":2025,"64":2026};
+
+  // 依据背景明度切换文字颜色，浅色山峰上不至于看不清
+  function inkFor(hex){
+    var m=/^#?([0-9a-f]{6})$/i.exec(hex||'');
+    if(!m) return '#f8fafc';
+    var v=parseInt(m[1],16);
+    var r=(v>>16&255)/255, g=(v>>8&255)/255, b=(v&255)/255;
+    var f=function(c){ return c<=0.03928? c/12.92 : Math.pow((c+0.055)/1.055,2.4); };
+    var L=0.2126*f(r)+0.7152*f(g)+0.0722*f(b);
+    return L>0.42? '#0f172a' : '#ffffff';
+  }
+  function showTip(y, cx, cy, col){
+    var n=(YEAR_IDS[y]||[]).length;
+    tip.innerHTML=y+' · <b>'+n+'</b> 项研究';
+    tip.style.background=col;
+    tip.style.color=inkFor(col);
+    tip.style.left=cx+'px'; tip.style.top=cy+'px'; tip.style.display='block';
+  }
+  function hideTip(){ tip.style.display='none'; }
+
+  // 点亮一批研究（ids 为字符串集合），其余淡出
+  function focus(ids){
+    curves.forEach(function(c){
+      var on=ids.has(c.dataset.id);
+      c.style.opacity = on? '0.95':'0.06';
+      c.style.strokeWidth = on? '2.2':'1.1';
+    });
+    labs.forEach(function(l){
+      l.style.opacity = ids.has(l.dataset.id)? '1':'0.28';
+    });
+  }
+  function dimPeaks(keepYear){
+    peaks.forEach(function(g){
+      g.style.opacity = (String(g.dataset.year)===String(keepYear))? '1':'0.18';
+    });
+  }
+  function reset(){
+    curves.forEach(function(c){ c.style.opacity='0.5'; c.style.strokeWidth='1.1'; });
+    labs.forEach(function(l){ l.style.opacity='1'; });
+    peaks.forEach(function(g){ g.style.opacity='1'; });
+    hideTip();
+  }
+
+  // 悬停单条研究 → 同时点亮它所属年份的山峰
+  labs.forEach(function(l){
+    l.addEventListener('pointerenter',function(){
+      var id=l.dataset.id, y=ID_YEAR[id];
+      focus(new Set([String(id)]));
+      dimPeaks(y);
+      var g=peaks.filter(function(p){ return String(p.dataset.year)===String(y); })[0];
+      if(g) showTip(y, g.dataset.cx, (+g.dataset.cy - 6), g.dataset.col);
+    });
+    l.addEventListener('pointerleave',reset);
+  });
+
+  // 悬停年份山峰 → 点亮该年全部研究与连线
+  peaks.forEach(function(g){
+    g.addEventListener('pointerenter',function(){
+      var y=g.dataset.year;
+      focus(new Set((YEAR_IDS[y]||[]).map(String)));
+      dimPeaks(y);
+      showTip(y, g.dataset.cx, (+g.dataset.cy - 6), g.dataset.col);
+    });
+    g.addEventListener('pointerleave',reset);
+  });
+
+  document.getElementById('scroller').addEventListener('scroll',reset);
+
+  // drag to pan
+  var drag={a:false,x:0,s:0};
+  sc.addEventListener('pointerdown',function(e){
+    if(e.pointerType==='touch'||e.button!==0) return;
+    drag={a:true,x:e.clientX,s:sc.scrollLeft}; sc.classList.add('drag');
+  });
+  window.addEventListener('pointermove',function(e){
+    if(!drag.a) return; sc.scrollLeft = drag.s-(e.clientX-drag.x);
+  });
+  window.addEventListener('pointerup',function(){ drag.a=false; sc.classList.remove('drag'); });
+  window.addEventListener('pointercancel',function(){ drag.a=false; sc.classList.remove('drag'); });
+
+  function sync(){
+    var max=sc.scrollWidth-sc.clientWidth;
+    var ratio=sc.clientWidth/sc.scrollWidth;
+    knob.style.width=(ratio*100)+'%';
+    knob.style.left=(max>0? (sc.scrollLeft/max)*(1-ratio)*100:0)+'%';
+  }
+  sc.addEventListener('scroll',sync); window.addEventListener('resize',sync); sync();
+
+  function page(d){ sc.scrollBy({left:d*sc.clientWidth*0.8,behavior:'smooth'}); }
+  document.getElementById('prev').onclick=function(){ page(-1); };
+  document.getElementById('next').onclick=function(){ page(1); };
+
+  // ---------- zoom ----------
+  var W=3600, H=1280, MIN=0.4, MAX=2.4, scale=1;
+  function applyZoom(s, clientX){
+    var rect=sc.getBoundingClientRect();
+    var off = (typeof clientX==='number') ? (clientX-rect.left) : sc.clientWidth/2;
+    var focus = sc.scrollLeft + off;          // 视口内的锚点 → 内容坐标
+    s = Math.max(MIN, Math.min(MAX, s));
+    var ratio = s/scale; scale = s;
+    po.style.transform='scale('+scale+')';
+    cv.style.width=(W*scale)+'px'; cv.style.height=(H*scale)+'px';
+    zlevel.textContent=Math.round(scale*100)+'%';
+    sc.scrollLeft = focus*ratio - off;        // 锚点保持不动
+    sync();
+  }
+  function step(f){ applyZoom(scale*f); }
+  document.getElementById('zin').onclick=function(){ step(1.2); };
+  document.getElementById('zout').onclick=function(){ step(1/1.2); };
+  document.getElementById('zlevel').onclick=function(){ applyZoom(1); };
+
+  // 触控板捏合 / Ctrl+滚轮
+  sc.addEventListener('wheel',function(e){
+    if(!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    applyZoom(scale*(e.deltaY<0?1.08:1/1.08), e.clientX);
+  },{passive:false});
+
+  window.addEventListener('keydown',function(e){
+    var t=e.target; if(t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+    if(e.key==='ArrowLeft'){ e.preventDefault(); page(-1); return; }
+    if(e.key==='ArrowRight'){ e.preventDefault(); page(1); return; }
+    if(e.key==='+'||e.key==='='){ e.preventDefault(); step(1.2); return; }
+    if(e.key==='-'||e.key==='_'){ e.preventDefault(); step(1/1.2); return; }
+    if(e.key==='0'){ e.preventDefault(); applyZoom(1); return; }
+  });
+
+  // ---------- 导出 PNG ----------
+  // 把纸面克隆进 SVG <foreignObject>，渲染到 canvas 后下载。
+  // 注意：foreignObject 内部没有 :root，CSS 变量必须显式挂在包裹 div 上才能继承。
+  function posterSVG(scale){
+    scale = scale || 1;
+    reset();
+    var clone=po.cloneNode(true);
+    clone.style.transform='none'; clone.style.boxShadow='none';
+    clone.style.position='relative'; clone.style.width=W+'px'; clone.style.height=H+'px';
+    var tp=clone.querySelector('#ptip'); if(tp) tp.style.display='none';
+    var css=(document.querySelector('style')||{textContent:''}).textContent||'';
+    var inner=new XMLSerializer().serializeToString(clone);
+    // 用 viewBox 让 SVG 自身按 scale 倍渲染，避免 canvas 端放大导致的大面积重栅格化
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="'+Math.round(W*scale)+
+      '" height="'+Math.round(H*scale)+'" viewBox="0 0 '+W+' '+H+'">'+
+      '<foreignObject x="0" y="0" width="'+W+'" height="'+H+'">'+
+      '<div xmlns="http://www.w3.org/1999/xhtml" style="width:'+W+'px;height:'+H+'px;'+
+        '--serif:ui-serif,Georgia,&apos;Songti SC&apos;,&apos;Times New Roman&apos;,serif;'+
+        '--sans:ui-sans-serif,system-ui,-apple-system,&apos;PingFang SC&apos;,&apos;Microsoft YaHei&apos;,sans-serif;'+
+        '--ink:#1f2b4d;--paper:#f7f7f3">'+
+      '<style>'+css+'</style>'+inner+'</div></foreignObject></svg>';
+  }
+  function renderCanvas(scale, cb){
+    var dbg=/selftest/.test(location.search);
+    var img=new Image();
+    img.onload=function(){
+      try{
+        var cc=document.createElement('canvas');
+        cc.width=Math.round(W*scale); cc.height=Math.round(H*scale);
+        var ctx=cc.getContext('2d');
+        if(!ctx){ if(dbg) document.title='DBG no-ctx'; cb(null); return; }
+        ctx.fillStyle='#f7f7f3'; ctx.fillRect(0,0,cc.width,cc.height);
+        ctx.drawImage(img,0,0,cc.width,cc.height);
+        if(dbg) document.title='DBG drawn '+cc.width+'x'+cc.height;
+        cb(cc);
+      }catch(e){ if(dbg) document.title='DBG err '+e.message; cb(null); }
+    };
+    img.onerror=function(){ if(dbg) document.title='DBG img-error'; cb(null); };
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(posterSVG(scale));
+  }
+  var expBtn=document.getElementById('exp');
+  expBtn.onclick=function(){
+    var old=expBtn.textContent;
+    expBtn.disabled=true; expBtn.textContent='生成中…';
+    renderCanvas(2,function(cc){
+      expBtn.disabled=false; expBtn.textContent=old;
+      if(!cc){ alert('导出失败。可改用地址栏加 ?export=1 后用系统截图。'); return; }
+      cc.toBlob(function(blob){
+        if(!blob){ alert('导出失败：画布过大。可改用 ?export=1 后截图。'); return; }
+        var a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='研究图谱_'+cc.width+'x'+cc.height+'.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); },5000);
+      },'image/png');
+    });
+  };
+
+  // 自检：?selftest=1 时把导出结果写进 <title>，供无头浏览器 --dump-dom 校验
+  var st=(/selftest=(d+)/.exec(location.search)||[])[1];
+  if(st){
+    renderCanvas(+st,function(cc){
+      if(!cc) return;                       // 失败时保留 DBG 诊断标题
+      try{
+        var d=cc.toDataURL('image/png');
+        document.title='SELFTEST ok len='+d.length+' dim='+cc.width+'x'+cc.height;
+      }catch(e){ document.title='SELFTEST ERR '+e.message; }
+    });
+  }
+
+  // 导出模式：?export=1（或 #export）—— 撑开整张纸面、去掉滚动裁剪与页面 UI，
+  // 便于无头浏览器整幅截图：chrome --headless --window-size=3696,1376 --screenshot=
+  if(/[?&#]export/.test(location.search+location.hash)){
+    var hd=document.querySelector('header'), tr=document.querySelector('.track'), mn=document.querySelector('main');
+    if(hd) hd.style.display='none';
+    if(tr) tr.style.display='none';
+    if(mn) mn.style.padding='0';
+    sc.style.overflow='visible'; sc.style.maxHeight='none'; sc.style.cursor='default';
+    sc.style.width=(3600+96)+'px'; sc.style.height=(1280+96)+'px';
+    document.body.style.minHeight='0';
+    document.body.style.background='#c9c8c4';
+    document.body.style.backgroundImage='none';
+  }
+})();
+</script>
+</body>
+</html>

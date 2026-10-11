@@ -1,5 +1,90 @@
 [
   {
+    "id": "interactive-hypertrophy-data-visualization",
+    "name": "负荷悖论 · 肌肉生长数据探索",
+    "description": "基于 Lees 等 2025 年论文的交互长页：从解剖图选肌肉，逐步查看抗阻训练负荷与肌肉增长的证据链及个体差异分布。",
+    "tags": [
+      "React",
+      "Framer Motion",
+      "数据可视化",
+      "暗色",
+      "科普"
+    ],
+    "hash": "0f86531a72932397",
+    "updated": "2026-10-11T16:44:02+00:00",
+    "thumb": "thumbnails/interactive-hypertrophy-data-visualization-small.jpg",
+    "thumbLarge": "thumbnails/interactive-hypertrophy-data-visualization.jpg",
+    "path": "pages/interactive-hypertrophy-data-visualization/"
+  },
+  {
+    "id": "vox-style-scroll-explainer",
+    "name": "HOW IT SPREAD · Vox 式滚动纪录片",
+    "description": "纪录片视觉语言的滚动叙事长页，九个场景依次展开：手绘路线图、沙盘推演、批注文件、柱状竞赛、自绘折线图与小倍数图。",
+    "tags": [
+      "React",
+      "Framer Motion",
+      "SVG",
+      "滚动叙事",
+      "数据可视化",
+      "复古"
+    ],
+    "hash": "529a14d63258e650",
+    "updated": "2026-10-11T16:38:01+00:00",
+    "thumb": "thumbnails/vox-style-scroll-explainer-small.jpg",
+    "thumbLarge": "thumbnails/vox-style-scroll-explainer.jpg",
+    "path": "pages/vox-style-scroll-explainer/"
+  },
+  {
+    "id": "roomtone-independent-radio",
+    "name": "Roomtone 独立电台 · 红蓝杂志风",
+    "description": "虚构独立电台 Roomtone 的落地页：深蓝夜色底配红蓝撞色，选频率、挑心情、点开唱片即可收听，大字排版与网格卡片营造杂志质感。",
+    "tags": [
+      "React",
+      "Tailwind",
+      "暗色",
+      "极简",
+      "落地页"
+    ],
+    "hash": "b1d20287cc26f200",
+    "updated": "2026-10-11T16:37:20+00:00",
+    "thumb": "thumbnails/roomtone-independent-radio-small.jpg",
+    "thumbLarge": "thumbnails/roomtone-independent-radio.jpg",
+    "path": "pages/roomtone-independent-radio/"
+  },
+  {
+    "id": "interactive-muscle-study-visualization",
+    "name": "抗阻训练个体差异 · Ahtiainen 2016",
+    "description": "可视化 Ahtiainen 等 2016 年研究：不同年龄男女抗阻训练后力量与肌肉量的反应差异，径向增益图、区间带、坡度图与响应者韦恩图。",
+    "tags": [
+      "React",
+      "SVG",
+      "数据可视化",
+      "科普",
+      "暗色"
+    ],
+    "hash": "5f824abecdbf555d",
+    "updated": "2026-10-11T16:36:43+00:00",
+    "thumb": "thumbnails/interactive-muscle-study-visualization-small.jpg",
+    "thumbLarge": "thumbnails/interactive-muscle-study-visualization.jpg",
+    "path": "pages/interactive-muscle-study-visualization/"
+  },
+  {
+    "id": "muscle-hypertrophy-research-atlas",
+    "name": "增肌个体差异 · 研究图谱海报",
+    "description": "3600×1280 超宽 SVG 图谱：按年份堆叠的文献山峰、标题标签网格与贝塞尔连线，一屏看尽增肌个体差异研究的脉络与分类。",
+    "tags": [
+      "SVG",
+      "数据可视化",
+      "科普",
+      "复古"
+    ],
+    "hash": "c8fc80a19803fe29",
+    "updated": "2026-10-11T16:36:43+00:00",
+    "thumb": "thumbnails/muscle-hypertrophy-research-atlas-small.jpg",
+    "thumbLarge": "thumbnails/muscle-hypertrophy-research-atlas.jpg",
+    "path": "pages/muscle-hypertrophy-research-atlas/"
+  },
+  {
     "id": "pure-frontend-folder-effect",
     "name": "磨砂文件夹 · 玻璃拟态组件",
     "description": "复刻 macOS 风格的磨砂玻璃文件夹交互组件：拟物纸张、悬浮按钮、细腻阴影，纯 React + CSS 过渡实现。",
