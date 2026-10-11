@@ -2,7 +2,27 @@
 
 收藏每次用 AI "vibe" 出来的前端页面：仓库根目录下**每个子文件夹是一个独立的页面项目**，跑一次脚本自动完成构建、首屏截图和索引生成，集合页提供搜索 + 瀑布流浏览，点击卡片即可打开真实的可交互页面。
 
+在线地址：https://aosgu.github.io/web/
+
 ![灵感库集合页](docs/thumbnails/interactive-3p-insomnia-webpage-small.jpg)
+
+## 已收录页面（9）
+
+按最近更新排序，点名称直接打开线上可交互页面。
+
+| 页面 | 说明 | 标签 |
+|---|---|---|
+| [负荷悖论 · 肌肉生长数据探索](https://aosgu.github.io/web/pages/interactive-hypertrophy-data-visualization/) | 基于 Lees 等 2025 年论文的交互长页：从解剖图选肌肉，逐步查看抗阻训练负荷与肌肉增长的证据链及个体差异分布。 | React、Framer Motion、数据可视化、暗色、科普 |
+| [HOW IT SPREAD · Vox 式滚动纪录片](https://aosgu.github.io/web/pages/vox-style-scroll-explainer/) | 纪录片视觉语言的滚动叙事长页，九个场景依次展开：手绘路线图、沙盘推演、批注文件、柱状竞赛、自绘折线图与小倍数图。 | React、Framer Motion、SVG、滚动叙事、数据可视化、复古 |
+| [Roomtone 独立电台 · 红蓝杂志风](https://aosgu.github.io/web/pages/roomtone-independent-radio/) | 虚构独立电台 Roomtone 的落地页：深蓝夜色底配红蓝撞色，选频率、挑心情、点开唱片即可收听，大字排版与网格卡片营造杂志质感。 | React、Tailwind、暗色、极简、落地页 |
+| [抗阻训练个体差异 · Ahtiainen 2016](https://aosgu.github.io/web/pages/interactive-muscle-study-visualization/) | 可视化 Ahtiainen 等 2016 年研究：不同年龄男女抗阻训练后力量与肌肉量的反应差异，径向增益图、区间带、坡度图与响应者韦恩图。 | React、SVG、数据可视化、科普、暗色 |
+| [增肌个体差异 · 研究图谱海报](https://aosgu.github.io/web/pages/muscle-hypertrophy-research-atlas/) | 3600×1280 超宽 SVG 图谱：按年份堆叠的文献山峰、标题标签网格与贝塞尔连线，一屏看尽增肌个体差异研究的脉络与分类。 | SVG、数据可视化、科普、复古 |
+| [磨砂文件夹 · 玻璃拟态组件](https://aosgu.github.io/web/pages/pure-frontend-folder-effect/) | 复刻 macOS 风格的磨砂玻璃文件夹交互组件：拟物纸张、悬浮按钮、细腻阴影，纯 React + CSS 过渡实现。 | React、Tailwind、玻璃拟态、亮色 |
+| [溯流 · AI 支出流向可视化](https://aosgu.github.io/web/pages/interactive-ai-spending-visualization/) | 花在 AI 上的钱最终流向谁？从用户订阅一路追到云、芯片、光刻机、矿场与热量，桑基图 + 滚动叙事 + 交互模拟器，墨金色编辑风。 | React、Framer Motion、数据可视化、暗色、滚动叙事 |
+| [听力损失机制图谱 · 交互科普页](https://aosgu.github.io/web/pages/hearing-loss-risk-mechanism-page/) | 章节式滚动叙事讲解听力损失的生物学机制：从细胞基础到通向全身性疾病的路径，再到干预手段，黑底颗粒质感。 | React、Framer Motion、暗色、科普、滚动叙事 |
+| [失眠 3P 模型 · 交互科普页](https://aosgu.github.io/web/pages/interactive-3p-insomnia-webpage/) | 用滚动叙事讲解失眠的三因素模型：Predisposing（易感）、Precipitating（诱发）、Perpetuating（维持），React + Framer Motion 驱动动画。 | React、Framer Motion、暗色、滚动叙事 |
+
+> 新增或删除页面后，这张表按上面的格式同步维护即可。
 
 ## 目录结构
 
@@ -30,6 +50,9 @@ web/
 pip3 install --user playwright pillow
 python3 -m playwright install chromium   # 下载无头浏览器内核，约 150MB
 ```
+
+> 不想下载 150MB 内核的话，可以让脚本直接用本机已装的 Chrome：临时把 `generate_gallery.py` 里的
+> `pw.chromium.launch()` 改成 `pw.chromium.launch(executable_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")` 即可。
 
 ## 日常使用
 
@@ -114,5 +137,6 @@ git add -A && git commit -m "gallery: 更新灵感库" && git push
 
 - **某个页面构建/截图失败**：不影响其他页面，终端会明确标注失败的页面，集合页里该卡片显示占位图
 - **截图是半截动画状态**：脚本默认等网络空闲后再等 2 秒；动画特别长的页面可以用 `--force` 重试，或改 `generate_gallery.py` 里的 `SETTLE_WAIT_MS`
-- **npm 下载慢**：可以临时用国内镜像跑脚本：`npm config set registry https://registry.npmmirror.com`
+- **npm 下载慢**：可以临时用国内镜像跑脚本：`npm config set registry https://registry.npmmirror.com`（或只对他单次生效：`npm_config_registry=https://registry.npmmirror.com python3 generate_gallery.py`）
+- **`npm ci` 中途失败、`node_modules` 损坏**（例如报 `vite: command not found`）：删掉该页面的 `node_modules` 重新安装即可；如果删除被系统拦截，就把源码复制到 `/tmp` 下的空目录重新 `npm install && npm run build`，再把 `dist/` 拷回仓库
 - **改了 meta.json**：直接重跑脚本即可，秒级完成（不会重新构建和截图）
