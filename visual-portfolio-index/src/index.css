@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+/* ---------- Design tokens (extracted from the reference image) ---------- */
+@theme {
+  --color-green: #17974a;
+  --color-blue: #1f62e0;
+  --color-navy: #1e4a74;
+  --color-sky: #5cb5ee;
+  --color-paper: #ebeae1;
+  --color-ink: #141412;
+
+  --font-sans: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--color-paper);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-blue);
+  color: var(--color-paper);
+}
+
+section[id] {
+  scroll-margin-top: 56px;
+}
+
+/* ---------- Grid paper ground ---------- */
+.grid-paper {
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(to right, rgba(20, 20, 18, 0.36) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 20, 18, 0.36) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ---------- Print grain, like the scanned reference ---------- */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.12;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes pulse-sq {
+  0%,
+  100% {
+    transform: scale(0.12);
+  }
+  50% {
+    transform: scale(1);
+  }
+}
+
+@keyframes spin-cw {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-ccw {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes draw-loop {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  50% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -1;
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes cue {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  50% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  51% {
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
+.anim-pulse {
+  animation: pulse-sq 2.4s ease-in-out infinite;
+}
+
+.anim-spin-cw {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+  animation: spin-cw 22s linear infinite;
+}
+
+.anim-spin-ccw {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+  animation: spin-ccw 14s linear infinite;
+}
+
+.anim-draw {
+  stroke-dasharray: 1 1;
+  animation: draw-loop 4.5s ease-in-out infinite;
+}
+
+.reveal-line {
+  display: block;
+  animation: rise 1.2s var(--ease-expo) both;
+}
+
+.cue-line {
+  animation: cue 2.4s ease-in-out infinite;
+}
+
+.outline-text {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--color-ink);
+}
+
+.cursor-dot {
+  width: 20px;
+  height: 20px;
+  transition: width 0.35s var(--ease-expo), height 0.35s var(--ease-expo);
+}
+
+.cursor-dot.is-hot {
+  width: 64px;
+  height: 64px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
