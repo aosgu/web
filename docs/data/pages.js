@@ -1,5 +1,74 @@
 window.PAGES_DATA = [
   {
+    "id": "visual-portfolio-index",
+    "name": "Index · 视觉作品集长页",
+    "description": "以版面、SVG 形状与滚动动效构成的作品集：形状实验室、调色板、绘制网格与字体实验区依次展开，自定义光标全程跟随。",
+    "tags": [
+      "React",
+      "SVG",
+      "作品集",
+      "滚动叙事",
+      "悬停交互",
+      "亮色"
+    ],
+    "hash": "cc195d9815da4a1b",
+    "updated": "2026-10-29T07:17:08+00:00",
+    "thumb": "thumbnails/visual-portfolio-index-small.jpg",
+    "thumbLarge": "thumbnails/visual-portfolio-index.jpg",
+    "path": "pages/visual-portfolio-index/"
+  },
+  {
+    "id": "pastoral-meadow-diorama",
+    "name": "绿茵牧场 · 3D 羊群交互",
+    "description": "Three.js 搭建的牧场微缩景观：羊群在草地上活动，可切换场景与时段、点选小羊，配程序化纹理与环境音效。",
+    "tags": [
+      "React",
+      "Three.js",
+      "3D",
+      "小游戏",
+      "悬停交互"
+    ],
+    "hash": "9d8820b2651152f9",
+    "updated": "2026-10-29T07:16:58+00:00",
+    "thumb": "thumbnails/pastoral-meadow-diorama-small.jpg",
+    "thumbLarge": "thumbnails/pastoral-meadow-diorama.jpg",
+    "path": "pages/pastoral-meadow-diorama/"
+  },
+  {
+    "id": "nova-voss-portfolio",
+    "name": "Nova Voss · 设计师作品集",
+    "description": "虚构设计师 Nova Voss 的个人站：米白纸感底色上，字体实验室、动效研究与作品陈列随滚动推进，衬线与等宽字混排。",
+    "tags": [
+      "React",
+      "作品集",
+      "滚动叙事",
+      "亮色",
+      "极简"
+    ],
+    "hash": "abd7a92d5b8e7aec",
+    "updated": "2026-10-29T06:31:31+00:00",
+    "thumb": "thumbnails/nova-voss-portfolio-small.jpg",
+    "thumbLarge": "thumbnails/nova-voss-portfolio.jpg",
+    "path": "pages/nova-voss-portfolio/"
+  },
+  {
+    "id": "gradient-3d-object-collection",
+    "name": "20 个渐变 3D 形体 · 抽象物件集",
+    "description": "Three.js 渲染的 20 个抽象几何体，统一渐变材质与配色主题，可切换色彩方案逐个查看形体的光影与质感。",
+    "tags": [
+      "React",
+      "Three.js",
+      "3D",
+      "暗色",
+      "极简"
+    ],
+    "hash": "519ab28c8195cf54",
+    "updated": "2026-10-29T06:31:30+00:00",
+    "thumb": "thumbnails/gradient-3d-object-collection-small.jpg",
+    "thumbLarge": "thumbnails/gradient-3d-object-collection.jpg",
+    "path": "pages/gradient-3d-object-collection/"
+  },
+  {
     "id": "interactive-hypertrophy-data-visualization",
     "name": "负荷悖论 · 肌肉生长数据探索",
     "description": "基于 Lees 等 2025 年论文的交互长页：从解剖图选肌肉，逐步查看抗阻训练负荷与肌肉增长的证据链及个体差异分布。",
@@ -52,6 +121,22 @@ window.PAGES_DATA = [
     "path": "pages/roomtone-independent-radio/"
   },
   {
+    "id": "muscle-hypertrophy-research-atlas",
+    "name": "增肌个体差异 · 研究图谱海报",
+    "description": "3600×1280 超宽 SVG 图谱：按年份堆叠的文献山峰、标题标签网格与贝塞尔连线，一屏看尽增肌个体差异研究的脉络与分类。",
+    "tags": [
+      "SVG",
+      "数据可视化",
+      "科普",
+      "复古"
+    ],
+    "hash": "c8fc80a19803fe29",
+    "updated": "2026-10-11T16:36:43+00:00",
+    "thumb": "thumbnails/muscle-hypertrophy-research-atlas-small.jpg",
+    "thumbLarge": "thumbnails/muscle-hypertrophy-research-atlas.jpg",
+    "path": "pages/muscle-hypertrophy-research-atlas/"
+  },
+  {
     "id": "interactive-muscle-study-visualization",
     "name": "抗阻训练个体差异 · Ahtiainen 2016",
     "description": "可视化 Ahtiainen 等 2016 年研究：不同年龄男女抗阻训练后力量与肌肉量的反应差异，径向增益图、区间带、坡度图与响应者韦恩图。",
@@ -67,22 +152,6 @@ window.PAGES_DATA = [
     "thumb": "thumbnails/interactive-muscle-study-visualization-small.jpg",
     "thumbLarge": "thumbnails/interactive-muscle-study-visualization.jpg",
     "path": "pages/interactive-muscle-study-visualization/"
-  },
-  {
-    "id": "muscle-hypertrophy-research-atlas",
-    "name": "增肌个体差异 · 研究图谱海报",
-    "description": "3600×1280 超宽 SVG 图谱：按年份堆叠的文献山峰、标题标签网格与贝塞尔连线，一屏看尽增肌个体差异研究的脉络与分类。",
-    "tags": [
-      "SVG",
-      "数据可视化",
-      "科普",
-      "复古"
-    ],
-    "hash": "c8fc80a19803fe29",
-    "updated": "2026-10-11T16:36:43+00:00",
-    "thumb": "thumbnails/muscle-hypertrophy-research-atlas-small.jpg",
-    "thumbLarge": "thumbnails/muscle-hypertrophy-research-atlas.jpg",
-    "path": "pages/muscle-hypertrophy-research-atlas/"
   },
   {
     "id": "pure-frontend-folder-effect",
