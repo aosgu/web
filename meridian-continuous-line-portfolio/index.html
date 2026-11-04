@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MERIDIAN — A Horizontal Portfolio</title>
+<meta name="description" content="Meridian is an independent design practice working between land and sea. A portfolio in one continuous line.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   MERIDIAN — a horizontal portfolio
+   00 prologue / 01 type / 02 line / 03 motion
+   04 interaction / 05 work / 06 contact
+   ============================================================ */
+
+:root{
+  --ink:#05100F;
+  --ink-2:#071A1C;
+  --deep:#071C33;
+  --paper:#EAF2E9;
+  --green:#A8F06A;
+  --green-hot:#C9FF57;
+  --blue:#4C86FF;
+  --blue-hot:#68C4FF;
+  --accent:#A8F06A;
+  --text:#EDF6F0;
+  --muted:#8AA6A1;
+  --line:rgba(178,226,208,.16);
+  --line-strong:rgba(178,226,208,.32);
+  --hud-h:74px;
+  --foot-h:86px;
+  --sans:'Inter Tight','Helvetica Neue',Helvetica,Arial,sans-serif;
+  --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(.19,1,.22,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink);scrollbar-width:none}
+html::-webkit-scrollbar{display:none}
+body{
+  font-family:var(--sans);
+  background:var(--ink);
+  color:var(--text);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+body.mobile{cursor:auto}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--green);color:#04120A}
+
+/* ---------- ambient layers ---------- */
+.ambient{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(60vw 70vh at 12% 30%,rgba(74,196,128,.13),transparent 70%),
+    radial-gradient(55vw 80vh at 88% 78%,rgba(52,110,255,.16),transparent 72%),
+    linear-gradient(160deg,#05100F 0%,#071A1C 48%,#06162B 100%);
+}
+.ambient::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(5,16,15,.55),transparent 18%,transparent 82%,rgba(5,16,15,.55));
+}
+.grain{
+  position:fixed;inset:-50%;z-index:90;pointer-events:none;opacity:.055;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grainShift 7s steps(6) infinite;
+}
+body.no-grain .grain{opacity:0}
+@keyframes grainShift{
+  0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}
+  60%{transform:translate(-2%,-2%)}80%{transform:translate(3%,1%)}100%{transform:translate(0,0)}
+}
+.grid-overlay{
+  position:fixed;inset:0;z-index:91;pointer-events:none;opacity:0;transition:opacity .45s;
+  background-image:
+    repeating-linear-gradient(90deg,rgba(168,240,106,.16) 0 1px,transparent 1px calc(100% / 12)),
+    repeating-linear-gradient(0deg,rgba(168,240,106,.09) 0 1px,transparent 1px 48px);
+}
+body.show-grid .grid-overlay{opacity:1}
+
+/* ---------- HUD ---------- */
+.hud{
+  position:fixed;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2.6vw;
+  color:var(--text);
+  transition:color .5s ease;
+  pointer-events:none;
+}
+.hud > *{pointer-events:auto}
+.hud--top{top:0;height:var(--hud-h);border-bottom:1px solid var(--line);
+  background:rgba(5,16,15,.62)}
+.hud--bottom{bottom:0;height:var(--foot-h);border-top:1px solid var(--line);
+  background:linear-gradient(0deg,rgba(5,16,15,.88),rgba(5,16,15,.55))}
+body.on-light .hud--top{background:rgba(234,242,233,.82)}
+body.on-light .hud{color:#08211C}
+body.on-light .hud{border-color:rgba(8,33,28,.22)}
+body.on-light .hud--bottom{background:linear-gradient(0deg,rgba(234,242,233,.65),transparent)}
+
+.brand{display:flex;align-items:center;gap:12px;flex:0 0 auto}
+.brand svg{width:30px;height:30px;overflow:visible}
+.brand-name{font-weight:800;font-size:16px;letter-spacing:.24em;line-height:1}
+.brand-sub{font-family:var(--mono);font-size:9px;letter-spacing:.18em;opacity:.55;margin-left:6px;
+  border-left:1px solid currentColor;padding-left:12px}
+@media(max-width:1100px){.brand-sub{display:none}}
+
+.nav{display:flex;gap:4px;align-items:center}
+.nav-chip{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+  padding:8px 10px;border-radius:2px;opacity:.5;position:relative;
+  transition:opacity .3s,background .3s,color .3s;white-space:nowrap;
+}
+.nav-chip:hover{opacity:1;background:rgba(168,240,106,.1)}
+.nav-chip.is-current{opacity:1;color:var(--green)}
+body.on-light .nav-chip.is-current{color:#1A6B3C}
+.nav-chip.is-current::after{
+  content:"";position:absolute;left:10px;right:10px;bottom:2px;height:1px;background:currentColor;
+}
+@media(max-width:1280px){.nav-chip{font-size:0;padding:8px 7px}.nav-chip::first-letter{font-size:9.5px}
+  .nav-chip{letter-spacing:0}.nav-chip::before{content:attr(data-num);font-size:9.5px}}
+@media(max-width:900px){.nav{display:none}}
+
+.hud-meta{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.12em;opacity:.7;flex:0 0 auto}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 0 0 rgba(168,240,106,.6);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(168,240,106,.55)}70%{box-shadow:0 0 0 8px rgba(168,240,106,0)}100%{box-shadow:0 0 0 0 rgba(168,240,106,0)}}
+@media(max-width:1100px){.hud-meta .avail{display:none}}
+
+.bottom-left{display:flex;align-items:center;gap:20px;flex:0 0 auto}
+.section-readout{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;min-width:150px}
+.section-readout b{color:var(--green);font-weight:500}
+body.on-light .section-readout b{color:#1A6B3C}
+
+.progress-wrap{flex:1;max-width:52vw;padding:0 26px}
+.progress-label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;
+  letter-spacing:.16em;opacity:.6;margin-bottom:10px}
+.progress-bar{position:relative;height:2px;background:var(--line-strong)}
+.progress-fill{position:absolute;left:0;top:-1px;height:4px;width:0;
+  background:linear-gradient(90deg,var(--green),var(--blue));box-shadow:0 0 14px rgba(120,220,180,.5)}
+.progress-fill::after{content:"";position:absolute;right:-3px;top:-3px;width:10px;height:10px;
+  border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.tick{position:absolute;top:-3px;width:1px;height:8px;background:var(--line-strong);transition:background .3s}
+.tick.is-passed{background:var(--green)}
+
+.hint{font-family:var(--mono);font-size:9px;letter-spacing:.14em;opacity:.55;white-space:nowrap}
+@media(max-width:1100px){.hint{display:none}}
+.pct{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:10px;letter-spacing:.1em}
+.pct svg{width:34px;height:34px;transform:rotate(-90deg)}
+.pct circle{fill:none;stroke-width:2}
+.pct .ring-bg{stroke:var(--line-strong)}
+.pct .ring-fg{stroke:var(--green);stroke-dasharray:88;stroke-dashoffset:88;stroke-linecap:round;transition:stroke .4s}
+
+/* ---------- stage / horizontal engine ---------- */
+.stage{position:relative;z-index:1}
+.viewport{position:sticky;top:0;height:100vh;overflow:hidden}
+.viewport::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(45vw 60vh at 20% 50%,rgba(60,180,130,.08),transparent 70%),
+             radial-gradient(45vw 60vh at 80% 50%,rgba(60,110,255,.09),transparent 70%);
+}
+.track{display:flex;height:100%;width:max-content;will-change:transform;position:relative;z-index:1}
+.panel{
+  position:relative;flex:0 0 auto;height:100vh;overflow:hidden;
+  padding:calc(var(--hud-h) + 3vh) calc(var(--over,0px) + 6vw) calc(var(--foot-h) + 3vh);
+  display:flex;flex-direction:column;justify-content:center;
+  border-right:1px solid var(--line);
+}
+.panel::before{
+  content:"";position:absolute;left:0;top:var(--hud-h);bottom:var(--foot-h);width:1px;
+  background:linear-gradient(180deg,transparent,var(--line-strong),transparent);
+}
+.panel--paper{background:var(--paper);color:#0A211C;border-right-color:rgba(10,33,28,.18)}
+.panel--paper::before{background:linear-gradient(180deg,transparent,rgba(10,33,28,.3),transparent)}
+.panel--paper .eyebrow,.panel--paper .mono,.panel--paper .meta-label{color:#3C6357}
+.panel--paper .rule{background:rgba(10,33,28,.18)}
+
+/* shared type atoms */
+.eyebrow,.mono,.meta-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+.eyebrow{color:var(--green);display:flex;align-items:center;gap:14px}
+.eyebrow::before{content:"";width:30px;height:1px;background:currentColor;flex:0 0 auto}
+.rule{height:1px;background:var(--line);width:100%}
+.serif-i{font-family:var(--serif);font-style:italic;font-weight:400}
+.grad-text{background:linear-gradient(105deg,var(--green) 5%,#7DE8B0 42%,var(--blue) 95%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.panel-index{
+  position:absolute;left:calc(var(--over,0px) + 6vw);top:calc(var(--hud-h) + 2.4vh);
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;opacity:.5;
+}
+.panel-side{
+  position:absolute;right:2vw;top:50%;transform:translateY(-50%) rotate(90deg);
+  transform-origin:center;font-family:var(--mono);font-size:9px;letter-spacing:.34em;opacity:.4;white-space:nowrap;
+  pointer-events:none;
+}
+.panel.is-wide .panel-side{opacity:0}
+.panel--paper .panel-side{color:#0A211C}
+
+.reveal{opacity:0;transform:translateY(26px);
+  transition:opacity .85s var(--ease),transform .85s var(--ease);
+  transition-delay:calc(var(--i,0) * 80ms)}
+.panel.in-view .reveal{opacity:1;transform:none}
+body.mobile .reveal{opacity:1;transform:none}
+
+/* ================= 00 PROLOGUE ================= */
+.panel--hero{justify-content:center}
+.hero-ghost{
+  position:absolute;left:-1vw;top:50%;transform:translateY(-52%);
+  font-size:23vw;font-weight:900;letter-spacing:-.07em;line-height:.8;
+  color:transparent;-webkit-text-stroke:1px rgba(168,240,106,.1);white-space:nowrap;pointer-events:none;
+}
+.hero-inner{position:relative;z-index:2;max-width:1100px}
+.hero-title{
+  font-size:clamp(84px,15vw,230px);font-weight:800;letter-spacing:-.075em;line-height:.8;
+  margin:2.2vh 0 3vh;display:flex;align-items:baseline;
+}
+.hero-title .ch{display:inline-block;transform:translateY(110%);animation:rise 1.15s var(--ease) forwards}
+.hero-title .ch:nth-child(1){animation-delay:.05s}.hero-title .ch:nth-child(2){animation-delay:.11s}
+.hero-title .ch:nth-child(3){animation-delay:.17s}.hero-title .ch:nth-child(4){animation-delay:.23s}
+.hero-title .ch:nth-child(5){animation-delay:.29s}.hero-title .ch:nth-child(6){animation-delay:.35s}
+.hero-title .ch:nth-child(7){animation-delay:.41s}.hero-title .ch:nth-child(8){animation-delay:.47s}
+@keyframes rise{to{transform:translateY(0)}}
+.hero-title .serif-i{font-size:1.06em;letter-spacing:-.05em;font-weight:400;color:var(--green);
+  text-shadow:0 0 60px rgba(168,240,106,.3)}
+.hero-sub{font-size:clamp(18px,2vw,30px);font-weight:300;line-height:1.35;max-width:640px;letter-spacing:-.02em}
+.hero-sub em{font-family:var(--serif);font-style:italic;font-size:1.12em}
+.land{color:var(--green)}.sea{color:var(--blue-hot)}
+.hero-meta{display:flex;gap:5vw;margin-top:7vh;flex-wrap:wrap}
+.hero-meta div{display:flex;flex-direction:column;gap:7px}
+.meta-label{opacity:.5;font-size:9px}
+.meta-value{font-size:13px;letter-spacing:.01em;font-weight:500}
+
+.hero-wave{position:absolute;left:0;right:0;bottom:0;height:34vh;width:100%;opacity:.85;pointer-events:none}
+.hero-wave path{fill:none;stroke-width:1.2;vector-effect:non-scaling-stroke}
+.hero-wave .w1{stroke:rgba(168,240,106,.5);animation:waveDrift 14s ease-in-out infinite alternate}
+.hero-wave .w2{stroke:rgba(120,220,180,.42);animation:waveDrift 18s ease-in-out infinite alternate-reverse}
+.hero-wave .w3{stroke:rgba(76,134,255,.5);animation:waveDrift 22s ease-in-out infinite alternate}
+.hero-wave .w4{stroke:rgba(104,196,255,.35);animation:waveDrift 16s ease-in-out infinite alternate-reverse}
+@keyframes waveDrift{to{transform:translateX(-70px)}}
+.seal{position:absolute;right:9vw;top:50%;margin-top:-120px;width:240px;height:240px;z-index:2}
+.seal-rot{transform-origin:120px 120px;animation:spin 36s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.seal text{font-family:var(--mono);font-size:11px;letter-spacing:3.4px;fill:var(--green);opacity:.85}
+.seal .core{fill:none;stroke:var(--line-strong)}
+.scroll-cue{position:absolute;left:calc(var(--over,0px) + 6vw);bottom:calc(var(--foot-h) + 3vh);display:flex;align-items:center;gap:14px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.2em;opacity:.65;z-index:3}
+.scroll-cue .arrowline{width:70px;height:1px;background:var(--green);position:relative;overflow:hidden}
+.scroll-cue .arrowline::after{content:"";position:absolute;top:0;left:-30px;width:30px;height:1px;
+  background:#fff;animation:cue 2.2s ease-in-out infinite}
+@keyframes cue{to{left:70px}}
+@media(max-width:900px){.seal{display:none}.hero-ghost{font-size:34vw}}
+
+/* ================= 01 TYPE ================= */
+.type-grid{display:grid;grid-template-columns:1.05fr .78fr 1.1fr;gap:5vw;align-items:center;height:100%}
+.type-head{position:absolute;left:6vw;top:calc(var(--hud-h) + 2.4vh)}
+.specimen{
+  font-size:clamp(180px,24vw,360px);font-weight:800;line-height:.78;letter-spacing:-.09em;
+  display:block;cursor:crosshair;user-select:none;
+  transition:font-weight .35s var(--ease),letter-spacing .35s var(--ease),filter .35s;
+  filter:drop-shadow(0 20px 60px rgba(30,90,70,.16));
+}
+.specimen:hover{font-weight:300;letter-spacing:-.04em}
+.specimen .s2{font-family:var(--serif);font-style:italic;font-weight:400}
+.specimen-label{margin-top:6vh;position:relative;z-index:3;display:flex;justify-content:space-between;align-items:baseline}
+.specimen-label span:last-child{font-family:var(--mono);font-size:9px;letter-spacing:.16em;opacity:.55}
+
+.ladder{border-top:1px solid rgba(10,33,28,.25);padding-top:2vh}
+.ladder-row{display:flex;align-items:baseline;gap:16px;padding:11px 0;border-bottom:1px solid rgba(10,33,28,.14);
+  cursor:default;transition:padding-left .4s var(--ease),color .3s}
+.ladder-row:hover{padding-left:14px;color:#166A44}
+.ladder-row .n{font-family:var(--mono);font-size:9px;opacity:.5;width:34px;flex:0 0 auto}
+.ladder-row .t{font-weight:500;letter-spacing:-.04em;line-height:1;white-space:nowrap}
+.ladder-row .u{font-family:var(--mono);font-size:9px;opacity:.45;margin-left:auto;white-space:nowrap;flex:0 0 auto}
+.type-quote{position:relative}
+.type-quote .mark{font-family:var(--serif);font-size:120px;line-height:.5;color:#166A44;opacity:.35;display:block}
+.type-quote blockquote{font-family:var(--serif);font-size:clamp(30px,3.6vw,62px);line-height:1.06;letter-spacing:-.02em;margin:2vh 0 3vh}
+.type-quote blockquote i{font-style:italic;color:#166A44}
+.type-quote .attrib{font-family:var(--mono);font-size:10px;letter-spacing:.16em;opacity:.6;border-top:1px solid rgba(10,33,28,.25);padding-top:14px}
+.paper-stamp{position:absolute;right:calc(var(--over,0px) + 5vw);bottom:calc(var(--foot-h) + 4vh);width:110px;height:110px;opacity:.6}
+.paper-stamp svg{width:100%;height:100%}
+@media(max-width:900px){.type-grid{grid-template-columns:1fr;gap:6vh;height:auto;padding:14vh 0}}
+
+/* ================= 02 LINE ================= */
+.line-grid{display:grid;grid-template-columns:1.25fr .8fr;gap:6vw;align-items:center;height:100%}
+.contour-wrap{position:relative;aspect-ratio:1/1;max-height:66vh;display:flex;align-items:center;justify-content:center}
+.contour{width:100%;height:100%;overflow:visible}
+.contour .ring{fill:none;stroke-width:1.05;vector-effect:non-scaling-stroke;opacity:.75}
+.contour .axis{stroke:rgba(168,240,106,.16);stroke-width:1;stroke-dasharray:3 7}
+.contour .dot{fill:var(--green)}
+.contour-caption{position:absolute;left:0;bottom:-3vh;font-family:var(--mono);font-size:9px;letter-spacing:.18em;opacity:.5}
+.line-copy h2,.motion-copy h2,.inter-copy h2,.work-head h2,.panel--outro h2{
+  font-size:clamp(44px,5vw,86px);font-weight:700;letter-spacing:-.06em;line-height:.94;margin:2.4vh 0 2.6vh;
+}
+.line-copy p,.motion-copy p,.inter-copy p{max-width:420px;font-size:15px;line-height:1.65;color:var(--muted);font-weight:300}
+.marks{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:5vh}
+.mark-cell{background:rgba(5,18,17,.72);aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  transition:background .4s}
+.mark-cell:hover{background:rgba(168,240,106,.09)}
+.mark-cell svg{width:56px;height:56px;overflow:visible}
+.mark-cell svg *{transform-origin:center;transition:transform .6s var(--ease),stroke .4s,opacity .4s}
+.mark-cell:hover svg *{stroke:var(--green)}
+.mark-cell:hover svg .rot{transform:rotate(45deg)}
+.mark-cell:hover svg .scale{transform:scale(1.22)}
+.mark-cell:hover svg .shift{transform:translateX(7px)}
+.mark-cell span{font-family:var(--mono);font-size:8px;letter-spacing:.16em;opacity:.5}
+@media(max-width:900px){.line-grid{grid-template-columns:1fr;height:auto;padding:12vh 0}.contour-wrap{max-height:50vh}}
+
+/* ================= 03 MOTION ================= */
+.motion-layout{display:grid;grid-template-columns:1fr 1fr;gap:7vw;align-items:center;height:100%}
+.kinetic{font-size:clamp(44px,6vw,100px);font-weight:800;line-height:.9;letter-spacing:-.06em;
+  margin:3vh 0;cursor:crosshair;user-select:none;display:block}
+.kinetic .kw{display:inline-block;white-space:nowrap}
+.kinetic .kl{display:inline-block;transition:transform .5s var(--ease),color .35s;will-change:transform}
+.kinetic .kl.sp{width:.32em}
+.kinetic:hover .kl{color:var(--green)}
+.motion-meta{display:flex;gap:26px;align-items:center;font-family:var(--mono);font-size:9px;letter-spacing:.16em;opacity:.6;margin-top:3vh}
+.replay{border:1px solid var(--line-strong);padding:10px 16px;letter-spacing:.16em;font-family:var(--mono);font-size:9px;
+  transition:background .3s,color .3s,border-color .3s}
+.replay:hover{background:var(--green);color:#04120A;border-color:var(--green)}
+.curve-card{border:1px solid var(--line);background:rgba(6,20,22,.5);padding:3vh 2.4vw 2.4vh;position:relative}
+.curve-card .card-top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;letter-spacing:.16em;opacity:.6;margin-bottom:2vh}
+.curve-svg{width:100%;height:auto;display:block;overflow:visible}
+.curve-svg .gridline{stroke:rgba(178,226,208,.1);stroke-width:1;stroke-dasharray:2 6;fill:none}
+.curve-svg .axis{stroke:rgba(178,226,208,.28);stroke-width:1;fill:none}
+.curve-svg .curve{fill:none;stroke:var(--blue-hot);stroke-width:2.5;stroke-linecap:round;transition:d .5s}
+.curve-svg .trail{fill:none;stroke:var(--green-hot);stroke-width:2.5;stroke-linecap:round}
+.curve-svg .dot{fill:var(--green-hot);filter:drop-shadow(0 0 9px rgba(201,255,87,.85))}
+.curve-svg text{font-family:var(--mono);font-size:9px;fill:var(--muted);letter-spacing:1px}
+.ease-chips{display:flex;gap:8px;margin-top:2vh;align-items:center;flex-wrap:wrap}
+.ease-chip{font-family:var(--mono);font-size:9px;letter-spacing:.14em;padding:8px 12px;border:1px solid var(--line);
+  opacity:.55;transition:.3s}
+.ease-chip:hover{opacity:1}.ease-chip.is-on{background:var(--green);color:#04120A;border-color:var(--green);opacity:1}
+.play-btn{margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--green);
+  display:flex;align-items:center;gap:8px}
+.play-btn svg{width:12px;height:12px;fill:currentColor}
+@media(max-width:900px){.motion-layout{grid-template-columns:1fr;gap:6vh;height:auto;padding:12vh 0}}
+
+/* ================= 04 INTERACTION ================= */
+.inter-layout{display:grid;grid-template-columns:.9fr 1.1fr;gap:7vw;align-items:center;height:100%}
+.inter-copy h2{max-width:620px}
+.mixer-panel{border:1px solid var(--line);padding:3.4vh 2.6vw;background:rgba(6,20,22,.45);position:relative}
+.mixer-panel .card-top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;letter-spacing:.16em;opacity:.6}
+.mixer-value{font-size:clamp(38px,5vw,76px);font-weight:700;letter-spacing:-.05em;margin:2vh 0 1vh;color:var(--accent);
+  text-shadow:0 0 45px color-mix(in srgb,var(--accent) 35%,transparent);transition:color .15s}
+.mixer-svg{width:100%;height:70px;display:block;overflow:visible}
+.mixer-svg .track-line{stroke:url(#mixGrad);stroke-width:3;stroke-linecap:round}
+.mixer-svg .ticky{stroke:rgba(178,226,208,.3);stroke-width:1}
+.mixer-svg .knob{fill:var(--accent);stroke:#05100F;stroke-width:3;filter:drop-shadow(0 0 10px var(--accent))}
+.mixer-input{position:absolute;left:2.6vw;right:2.6vw;bottom:8.5vh;height:70px;width:calc(100% - 5.2vw);
+  opacity:0;cursor:ew-resize;-webkit-appearance:none;appearance:none;background:transparent;margin:0}
+.mixer-input::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px}
+.mixer-ends{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;letter-spacing:.16em;margin-top:8px}
+.mixer-ends span:first-child{color:var(--green)}.mixer-ends span:last-child{color:var(--blue-hot)}
+.inter-controls{display:flex;gap:3vw;align-items:flex-end;margin-top:5vh;flex-wrap:wrap}
+.toggle-group{display:flex;flex-direction:column;gap:12px}
+.toggle-row{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:9px;letter-spacing:.16em}
+.switch{width:42px;height:22px;border-radius:20px;border:1px solid var(--line-strong);position:relative;transition:.35s;flex:0 0 auto}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;
+  background:var(--muted);transition:.35s var(--ease)}
+.toggle-row[aria-pressed="true"] .switch{background:rgba(168,240,106,.18);border-color:var(--green)}
+.toggle-row[aria-pressed="true"] .switch::after{left:23px;background:var(--green);box-shadow:0 0 10px var(--green)}
+.toggle-row[aria-pressed="true"]{color:var(--text)}
+.toggle-row[aria-pressed="false"]{opacity:.55}
+.magnetic{position:relative;padding:20px 34px;border:1px solid var(--green);color:var(--green);
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;overflow:hidden;
+  transition:background .35s,color .35s,transform .25s var(--ease)}
+.magnetic span{position:relative;z-index:2}
+.magnetic::before{content:"";position:absolute;inset:0;background:var(--green);transform:translateY(101%);
+  transition:transform .45s var(--ease)}
+.magnetic:hover{color:#04120A}.magnetic:hover::before{transform:translateY(0)}
+@media(max-width:900px){.inter-layout{grid-template-columns:1fr;height:auto;padding:12vh 0;gap:5vh}}
+
+/* ================= 05 WORK ================= */
+.panel--work{justify-content:center}
+.work-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:5vh;gap:4vw}
+.work-head h2{margin:1.6vh 0 0}
+.work-head .work-note{font-family:var(--mono);font-size:9px;letter-spacing:.16em;opacity:.55;max-width:280px;line-height:1.8}
+.work-row{display:flex;gap:2vw;align-items:stretch}
+.work-card{
+  flex:0 0 auto;width:31vw;min-width:330px;position:relative;cursor:pointer;
+  border:1px solid var(--line);background:rgba(6,20,22,.55);
+  transition:transform .5s var(--ease),border-color .4s,background .4s;
+  transform-style:preserve-3d;
+}
+.work-card:hover{border-color:rgba(168,240,106,.55);background:rgba(10,32,30,.8)}
+.card-art{height:26vh;min-height:190px;position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+  background:radial-gradient(80% 100% at 50% 100%,rgba(76,134,255,.14),transparent 75%)}
+.card-art svg{width:100%;height:100%;display:block;overflow:visible}
+.card-art .floating{transition:transform .8s var(--ease)}
+.work-card:hover .card-art .floating{transform:translateY(-10px)}
+.card-art .spin-slow{transform-origin:center;transition:transform 1s var(--ease)}
+.work-card:hover .card-art .spin-slow{transform:rotate(14deg)}
+.card-num{position:absolute;top:16px;left:18px;font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--green);z-index:2}
+.card-body{padding:2.4vh 1.6vw 2.8vh}
+.card-cat{font-family:var(--mono);font-size:9px;letter-spacing:.16em;opacity:.55;display:flex;justify-content:space-between}
+.card-title{font-size:clamp(24px,2.5vw,40px);font-weight:600;letter-spacing:-.045em;margin:1.6vh 0 1vh;line-height:1}
+.card-desc{font-size:12px;line-height:1.6;color:var(--muted);max-width:90%}
+.card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:2.4vh;
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--green)}
+.card-foot .arw{transition:transform .4s var(--ease)}
+.work-card:hover .card-foot .arw{transform:translateX(8px)}
+.work-marquee{position:absolute;left:0;bottom:calc(var(--foot-h) + 2vh);width:100%;overflow:hidden;opacity:.35;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0}
+.marquee-inner{display:flex;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.28em;will-change:transform}
+.marquee-inner span{padding:0 26px}
+.marquee-inner i{font-style:normal;color:var(--green)}
+@media(max-width:900px){.work-row{flex-direction:column;gap:4vh}.work-card{width:100%;min-width:0}.card-art{height:220px}.work-marquee{display:none}}
+
+/* ================= 06 OUTRO ================= */
+.panel--outro{background:linear-gradient(115deg,#071C1A,#06162B 78%)}
+.outro-inner{position:relative;z-index:2}
+.panel--outro h2{font-size:clamp(64px,9vw,170px);letter-spacing:-.07em}
+.panel--outro .sub{max-width:560px;color:var(--muted);font-size:16px;line-height:1.6;font-weight:300;margin-top:3vh}
+.outro-mail{display:inline-flex;align-items:center;gap:18px;margin-top:5vh;font-size:clamp(20px,2.4vw,34px);
+  font-weight:500;letter-spacing:-.03em;border-bottom:1px solid var(--green);padding-bottom:12px;transition:color .3s,gap .3s}
+.outro-mail:hover{color:var(--green);gap:30px}
+.outro-mail svg{width:22px;height:22px;stroke:var(--green);fill:none}
+.outro-foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:8vh;
+  font-family:var(--mono);font-size:9px;letter-spacing:.16em;opacity:.6;gap:3vw;flex-wrap:wrap}
+.outro-foot .socials{display:flex;gap:22px}
+.outro-foot .socials a:hover{color:var(--green)}
+.to-start{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--green)}
+.to-start svg{width:30px;height:30px;stroke:currentColor;fill:none;transition:transform .4s var(--ease)}
+.to-start:hover svg{transform:translateX(-8px)}
+.outro-orbit{position:absolute;right:-6vw;top:50%;transform:translateY(-50%);width:46vw;height:46vw;max-width:700px;max-height:700px;opacity:.7;pointer-events:none}
+.outro-orbit .orb{transform-origin:350px 350px;animation:spin 60s linear infinite}
+.outro-orbit .orb2{transform-origin:350px 350px;animation:spin 38s linear infinite reverse}
+@media(max-width:900px){.outro-orbit{opacity:.28;width:90vw;height:90vw;right:-30vw}}
+
+/* ---------- case overlay ---------- */
+.overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  background:rgba(3,12,12,.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  opacity:0;pointer-events:none;transition:opacity .5s var(--ease)}
+.overlay.is-open{opacity:1;pointer-events:auto}
+.overlay-inner{width:min(1080px,88vw);display:grid;grid-template-columns:1fr 1fr;gap:5vw;align-items:center;
+  transform:translateY(30px);transition:transform .6s var(--ease)}
+.overlay.is-open .overlay-inner{transform:none}
+.ov-art{border:1px solid var(--line);height:52vh;min-height:320px;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(70% 70% at 50% 50%,rgba(76,134,255,.14),transparent 75%);overflow:hidden}
+.ov-art svg{width:100%;height:100%}
+.ov-num{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--green)}
+.ov-title{font-size:clamp(44px,6vw,92px);font-weight:700;letter-spacing:-.06em;line-height:.92;margin:2vh 0}
+.ov-cat{font-family:var(--mono);font-size:9px;letter-spacing:.18em;opacity:.6;margin-bottom:3vh}
+.ov-desc{font-size:15px;line-height:1.7;color:var(--muted);max-width:420px}
+.ov-list{margin-top:4vh;border-top:1px solid var(--line)}
+.ov-list div{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em}
+.ov-close{position:absolute;top:calc(var(--hud-h) + 18px);right:3vw;width:44px;height:44px;border:1px solid var(--line-strong);
+  display:flex;align-items:center;justify-content:center;transition:.3s;font-family:var(--mono);font-size:16px}
+.ov-close:hover{background:var(--green);color:#04120A;border-color:var(--green);transform:rotate(90deg)}
+@media(max-width:900px){.overlay-inner{grid-template-columns:1fr;gap:3vh}.ov-art{height:26vh;min-height:0}}
+
+/* ---------- cursor ---------- */
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;z-index:300;pointer-events:none;border-radius:50%;
+  mix-blend-mode:difference;transform:translate(-50%,-50%)}
+.cursor-dot{width:6px;height:6px;background:#fff}
+.cursor-ring{width:34px;height:34px;border:1px solid rgba(255,255,255,.7);
+  transition:width .3s var(--ease),height .3s var(--ease),background .3s,border-color .3s;
+  display:flex;align-items:center;justify-content:center}
+.cursor-ring span{font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:#05100F;opacity:0;
+  transform:scale(.6);transition:opacity .25s,transform .25s;white-space:nowrap}
+body.cur-active .cursor-ring{width:74px;height:74px;background:var(--green);border-color:var(--green);mix-blend-mode:normal}
+body.cur-active .cursor-ring span{opacity:1;transform:scale(1)}
+body.cur-active .cursor-dot{opacity:0}
+body.dragging .cursor-ring{width:56px;height:56px;border-color:var(--green)}
+@media(hover:none),(max-width:900px){.cursor-dot,.cursor-ring{display:none}body{cursor:auto}}
+
+/* ---------- mobile / vertical fallback ---------- */
+@media(max-width:899px){
+  .stage{height:auto!important}
+  .viewport{position:static;height:auto;overflow:visible}
+  .track{flex-direction:column;width:100%!important;transform:none!important}
+  .panel{width:100%!important;height:auto;min-height:88vh;padding:16vh 7vw 12vh;border-right:0;
+    border-bottom:1px solid var(--line)}
+  .panel-index{top:8vh}
+  .panel-side{display:none}
+  .hud--top{height:58px;background:#05100F}
+  .hud--bottom{height:64px;background:#05100F}
+  body.on-light .hud--top,body.on-light .hud--bottom{background:#EAF2E9}
+  .progress-wrap{max-width:none;padding:0 16px}
+  .bottom-left{min-width:0}
+  .section-readout{display:none}
+  .pct{display:none}
+  .grain{opacity:.04}
+  .hero-wave{height:22vh}
+  .hero-title{font-size:17vw}
+  .hero-meta{gap:4vw}
+  .scroll-cue{bottom:8vh;left:7vw}
+  .work-head{flex-direction:column;align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .hero-title .ch{transform:none}
+}
+</style>
+</head>
+<body class="grain-on">
+
+<div class="ambient"></div>
+<div class="grain"></div>
+<div class="grid-overlay"></div>
+
+<header class="hud hud--top">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="14" fill="none" stroke="#A8F06A" stroke-width="1.2"/>
+      <path d="M2.4 16C8 7.5 12 24.5 29.6 16" fill="none" stroke="#4C86FF" stroke-width="1.4"/>
+      <path d="M2.4 20.5C8 12 12 29 29.6 20.5" fill="none" stroke="#68C4FF" stroke-width="1" opacity=".6"/>
+      <circle cx="16" cy="16" r="2" fill="#A8F06A"/>
+    </svg>
+    <span class="brand-name">MERIDIAN</span>
+    <span class="brand-sub">INDEPENDENT DESIGN PRACTICE</span>
+  </div>
+  <nav class="nav" id="nav" aria-label="Sections"></nav>
+  <div class="hud-meta">
+    <span class="live-dot"></span><span class="avail">OPEN FOR 2027</span>
+    <span id="clock">00:00:00</span>
+  </div>
+</header>
+
+<main class="stage" id="stage">
+  <div class="viewport" id="viewport">
+    <div class="track" id="track">
+
+      <!-- ============ 00 PROLOGUE ============ -->
+      <section class="panel panel--hero" data-w="100" data-name="PROLOGUE" data-theme="dark">
+        <div class="panel-index">00 — PROLOGUE</div>
+        <div class="panel-side">LAND / SEA / LINE</div>
+        <div class="hero-ghost" data-depth="0.4">MERIDIAN</div>
+
+        <svg class="seal" viewBox="0 0 240 240" aria-hidden="true">
+          <defs><path id="sealPath" d="M120,120 m-94,0 a94,94 0 1,1 188,0 a94,94 0 1,1 -188,0"/></defs>
+          <g class="seal-rot">
+            <text><textPath href="#sealPath">MERIDIAN · DESIGN PRACTICE · LAND ↔ SEA · MERIDIAN · DESIGN PRACTICE · </textPath></text>
+            <circle class="core" cx="120" cy="120" r="76"/>
+            <circle class="core" cx="120" cy="120" r="64" stroke-dasharray="2 6"/>
+          </g>
+          <path d="M120 58 L132 120 L120 182 L108 120 Z" fill="none" stroke="#4C86FF" stroke-width="1.2"/>
+          <path d="M120 58 L132 120 L120 120 Z" fill="#A8F06A" opacity=".8"/>
+          <circle cx="120" cy="120" r="3.5" fill="#EAF2E9"/>
+        </svg>
+
+        <div class="hero-inner">
+          <div class="eyebrow reveal" style="--i:0">A PORTFOLIO IN ONE CONTINUOUS LINE</div>
+          <h1 class="hero-title" aria-label="MERIDIAN">
+            <span class="ch">M</span><span class="ch">E</span><span class="ch">R</span><span class="ch serif-i">i</span><span class="ch">D</span><span class="ch">I</span><span class="ch">A</span><span class="ch">N</span>
+          </h1>
+          <p class="hero-sub reveal" style="--i:3">
+            An independent practice working <em>between</em>
+            <span class="land">land</span> and <span class="sea">sea</span> —
+            where typography, line and time meet on a single horizon.
+          </p>
+          <div class="hero-meta reveal" style="--i:5">
+            <div><span class="meta-label">DISCIPLINE</span><span class="meta-value">Type · SVG · Motion · Interface</span></div>
+            <div><span class="meta-label">BASED</span><span class="meta-value">Somewhere on the coast</span></div>
+            <div><span class="meta-label">EDITION</span><span class="meta-value">Vol. 06 / 2026</span></div>
+          </div>
+        </div>
+
+        <svg class="hero-wave" viewBox="0 0 1440 260" preserveAspectRatio="none" aria-hidden="true">
+          <path class="w1" d="M-100 70 C 140 10 260 150 500 90 S 860 10 1080 90 S 1360 160 1560 70"/>
+          <path class="w2" d="M-100 110 C 140 50 260 190 500 130 S 860 50 1080 130 S 1360 200 1560 110"/>
+          <path class="w3" d="M-100 150 C 140 90 260 230 500 170 S 860 90 1080 170 S 1360 240 1560 150"/>
+          <path class="w4" d="M-100 190 C 140 130 260 270 500 210 S 860 130 1080 210 S 1360 280 1560 190"/>
+        </svg>
+        <div class="scroll-cue"><span class="arrowline"></span> SCROLL TO TRAVEL EAST</div>
+      </section>
+
+      <!-- ============ 01 TYPE ============ -->
+      <section class="panel panel--paper" data-w="125" data-name="TYPE" data-theme="light">
+        <div class="panel-index">01 — TYPOGRAPHY</div>
+        <div class="panel-side">A SPECIMEN IN SIX WEIGHTS</div>
+        <div class="type-grid">
+          <div class="type-col reveal" style="--i:0">
+            <span class="specimen" data-cursor="TOUCH"><span class="s1">A</span><span class="s2">g</span></span>
+            <div class="specimen-label">
+              <span class="mono">GROTESK × ITALIC SERIF</span><span>HOVER TO CHANGE WEIGHT</span>
+            </div>
+          </div>
+
+          <div class="ladder reveal" style="--i:2">
+            <div class="mono" style="margin-bottom:2vh;opacity:.55">THE SCALE / 06 STEPS</div>
+            <div class="ladder-row"><span class="n">01</span><span class="t" style="font-size:12px">Horizon</span><span class="u">12 / 400</span></div>
+            <div class="ladder-row"><span class="n">02</span><span class="t" style="font-size:18px">Horizon</span><span class="u">18 / 400</span></div>
+            <div class="ladder-row"><span class="n">03</span><span class="t" style="font-size:27px">Horizon</span><span class="u">27 / 500</span></div>
+            <div class="ladder-row"><span class="n">04</span><span class="t" style="font-size:41px">Horizon</span><span class="u">41 / 600</span></div>
+            <div class="ladder-row"><span class="n">05</span><span class="t" style="font-size:52px">Horizon</span><span class="u">52 / 700</span></div>
+            <div class="ladder-row"><span class="n">06</span><span class="t" style="font-size:68px">Horizon</span><span class="u">68 / 800</span></div>
+          </div>
+
+          <div class="type-quote reveal" style="--i:4">
+            <div class="mono" style="opacity:.55;margin-bottom:4vh">01 / LETTERS ARE LANDSCAPES</div>
+            <span class="mark">“</span>
+            <blockquote>We do not <i>read</i> a page. We <i>walk</i> across it — the space between letters is the path.</blockquote>
+            <div class="attrib">MERIDIAN — NOTES ON TYPE, NO. 04</div>
+          </div>
+        </div>
+        <div class="paper-stamp" aria-hidden="true">
+          <svg viewBox="0 0 100 100">
+            <defs><path id="stampPath" d="M50,50 m-36,0 a36,36 0 1,1 72,0 a36,36 0 1,1 -72,0"/></defs>
+            <circle cx="50" cy="50" r="47" fill="none" stroke="#166A44" stroke-width="1"/>
+            <circle cx="50" cy="50" r="27" fill="none" stroke="#166A44" stroke-width=".7"/>
+            <text font-family="monospace" font-size="8" letter-spacing="2.4" fill="#166A44">
+              <textPath href="#stampPath">SET IN METAL · SET IN MOTION · </textPath>
+            </text>
+            <path d="M50 30 L56 50 L50 70 L44 50 Z" fill="none" stroke="#166A44"/>
+          </svg>
+        </div>
+      </section>
+
+      <!-- ============ 02 LINE ============ -->
+      <section class="panel" data-w="115" data-name="LINE" data-theme="dark">
+        <div class="panel-index">02 — LINEWORK</div>
+        <div class="panel-side">ONE STROKE, INFINITE FORMS</div>
+        <div class="line-grid">
+          <div class="contour-wrap reveal" style="--i:0">
+            <svg class="contour" id="contour" viewBox="0 0 700 700" aria-label="Generated contour map"></svg>
+            <span class="contour-caption">FIG. 02 — ELEVATION STUDY / 11 RINGS, ONE RULE</span>
+          </div>
+          <div class="line-copy">
+            <div class="eyebrow reveal" style="--i:1">SVG / GENERATIVE GEOMETRY</div>
+            <h2 class="reveal" style="--i:2">Drawn, <span class="serif-i grad-text">not</span> decorated.</h2>
+            <p class="reveal" style="--i:3">Every ring above is a single path, calculated from one sine function and drawn by your scroll. No image, no library — just mathematics given a stroke. Scroll further west and the coastline resolves itself.</p>
+            <div class="marks reveal" style="--i:4">
+              <div class="mark-cell"><svg viewBox="0 0 60 60"><circle class="scale" cx="30" cy="30" r="19" fill="none" stroke="#A8F06A" stroke-width="1.3"/><circle cx="30" cy="30" r="3" fill="#68C4FF"/></svg><span>ORBIT</span></div>
+              <div class="mark-cell"><svg viewBox="0 0 60 60"><rect class="rot" x="16" y="16" width="28" height="28" fill="none" stroke="#4C86FF" stroke-width="1.3"/><path d="M8 30h44" stroke="#A8F06A" stroke-width="1"/></svg><span>QUAD</span></div>
+              <div class="mark-cell"><svg viewBox="0 0 60 60"><path class="shift" d="M8 42 C18 12 32 54 52 20" fill="none" stroke="#68C4FF" stroke-width="1.4"/></svg><span>WAVE</span></div>
+              <div class="mark-cell"><svg viewBox="0 0 60 60"><path class="rot" d="M30 7 L53 45 L7 45 Z" fill="none" stroke="#A8F06A" stroke-width="1.3"/></svg><span>DELTA</span></div>
+              <div class="mark-cell"><svg viewBox="0 0 60 60"><g class="scale"><circle cx="30" cy="30" r="4" fill="#4C86FF"/><circle cx="30" cy="30" r="13" fill="none" stroke="#68C4FF" stroke-width="1"/><circle cx="30" cy="30" r="23" fill="none" stroke="#A8F06A" stroke-width=".8"/></g></svg><span>RIPPLE</span></div>
+              <div class="mark-cell"><svg viewBox="0 0 60 60"><path class="shift" d="M10 10h40v40H10z" fill="none" stroke="#A8F06A" stroke-width="1.2"/><path d="M10 50L50 10" stroke="#4C86FF" stroke-width="1"/></svg><span>CROSS</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 03 MOTION ============ -->
+      <section class="panel" data-w="105" data-name="MOTION" data-theme="dark">
+        <div class="panel-index">03 — MOTION</div>
+        <div class="panel-side">TIME IS A MATERIAL</div>
+        <div class="motion-layout">
+          <div class="motion-copy">
+            <div class="eyebrow reveal" style="--i:0">KINETIC TYPE / EASING STUDIES</div>
+            <h2 class="reveal" style="--i:1">Time is a <span class="serif-i grad-text">material.</span></h2>
+            <span class="kinetic" id="kinetic" data-cursor="MOVE">TIME IS A MATERIAL.</span>
+            <p class="reveal" style="--i:2">Move your cursor through the letters. Nothing here is decoration: every displacement is a small answer to a question the pointer asked.</p>
+            <div class="motion-meta">
+              <button class="replay" id="replay" data-cursor="PLAY">↻ REPLAY</button>
+              <span>STAGGER 60MS · SPRING 0.22 / 1</span>
+            </div>
+          </div>
+
+          <div class="curve-card reveal" style="--i:3">
+            <div class="card-top"><span>FIG. 03 — EASING LAB</span><span id="curveReadout">EASE-OUT EXPONENTIAL</span></div>
+            <svg class="curve-svg" viewBox="0 0 400 340" id="curveSvg" aria-label="Easing curve diagram">
+              <g>
+                <path class="gridline" d="M40 60 H360 M40 120 H360 M40 180 H360 M40 240 H360"/>
+                <path class="gridline" d="M120 40 V300 M200 40 V300 M280 40 V300"/>
+                <path class="axis" d="M40 40 V300 H360"/>
+                <text x="16" y="46">1</text><text x="20" y="304">0</text>
+                <text x="34" y="320">0</text><text x="348" y="320">T</text>
+              </g>
+              <path class="curve" id="curve" d="M40 300 C 110 300 130 60 360 60"/>
+              <path class="trail" id="curveTrail" d="M40 300 C 110 300 130 60 360 60"/>
+              <circle class="dot" id="curveDot" cx="40" cy="300" r="7"/>
+            </svg>
+            <div class="ease-chips">
+              <button class="ease-chip" data-ease="linear">LINEAR</button>
+              <button class="ease-chip is-on" data-ease="ease">EASE OUT</button>
+              <button class="ease-chip" data-ease="spring">SPRING</button>
+              <button class="play-btn" id="playBtn" data-cursor="PLAY">▶ <span>PLAY</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 04 INTERACTION ============ -->
+      <section class="panel" data-w="115" data-name="INTERACT" data-theme="dark">
+        <div class="panel-index">04 — INTERACTION</div>
+        <div class="panel-side">THE PAGE SHOULD ANSWER BACK</div>
+        <div class="inter-layout">
+          <div class="inter-copy">
+            <div class="eyebrow reveal" style="--i:0">STATE / FEEDBACK / CONTROL</div>
+            <h2 class="reveal" style="--i:1">The page should <span class="serif-i grad-text">answer</span> back.</h2>
+            <p class="reveal" style="--i:2">A control is a promise: it must acknowledge the hand before it obeys. Drag the spectrum, flip the switches, and watch the whole scroll change its mind.</p>
+            <div class="inter-controls reveal" style="--i:3">
+              <div class="toggle-group">
+                <button class="toggle-row" data-toggle="grid" aria-pressed="false" data-cursor="FLIP"><span class="switch"></span>BASELINE GRID</button>
+                <button class="toggle-row" data-toggle="grain" aria-pressed="true" data-cursor="FLIP"><span class="switch"></span>FILM GRAIN</button>
+                <button class="toggle-row" data-toggle="inertia" aria-pressed="true" data-cursor="FLIP"><span class="switch"></span>SCROLL INERTIA</button>
+              </div>
+              <button class="magnetic" id="magnetic" data-cursor="HELLO"><span>SAY HELLO ↗</span></button>
+            </div>
+          </div>
+
+          <div class="mixer-panel no-drag reveal" style="--i:2" data-no-drag>
+            <div class="card-top"><span>FIG. 04 — SPECTRUM MIXER</span><span>DRAG / ← →</span></div>
+            <div class="mixer-value" id="mixValue">GREEN 66%</div>
+            <svg class="mixer-svg" viewBox="0 0 600 70" preserveAspectRatio="none" aria-hidden="true">
+              <defs><linearGradient id="mixGrad" x1="0" x2="1"><stop offset="0" stop-color="#A8F06A"/><stop offset=".5" stop-color="#6FD8B4"/><stop offset="1" stop-color="#4C86FF"/></linearGradient></defs>
+              <line class="track-line" x1="30" y1="35" x2="570" y2="35"/>
+              <g id="mixTicks"></g>
+              <circle class="knob" id="mixKnob" cx="208" cy="35" r="12"/>
+            </svg>
+            <input class="mixer-input" id="spectrum" type="range" min="0" max="100" value="34" aria-label="Green to blue balance">
+            <div class="mixer-ends"><span>← LAND / GREEN</span><span id="mixLabel">34% BLUE</span><span>SEA / BLUE →</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 05 WORK ============ -->
+      <section class="panel panel--work" data-w="170" data-name="WORK" data-theme="dark">
+        <div class="panel-index">05 — SELECTED WORK</div>
+        <div class="panel-side">2023 — 2026 / FOUR OF TWENTY-ONE</div>
+        <div class="work-head">
+          <div>
+            <div class="eyebrow reveal" style="--i:0">SELECTED WORK / 2023—2026</div>
+            <h2 class="reveal" style="--i:1">Four things <span class="serif-i grad-text">made.</span></h2>
+          </div>
+          <div class="work-note reveal" style="--i:2">CLICK ANY CARD TO OPEN THE CASE NOTE.<br>HOVER TO TILT · ESC TO CLOSE.</div>
+        </div>
+
+        <div class="work-row">
+          <article class="work-card reveal" style="--i:1" data-cursor="OPEN" data-no-drag
+            data-num="01" data-title="COASTLINE" data-cat="IDENTITY SYSTEM" data-year="2026"
+            data-desc="A living identity for a marine research institute. The mark is regenerated daily from tidal data — no two days share the same coastline."
+            data-scope="Strategy · Identity · Generative SVG" data-outcome="1 system / 365 variations">
+            <div class="card-art">
+              <span class="card-num">01 / 04</span>
+              <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice">
+                <g class="floating" fill="none" stroke-width="1.2">
+                  <path d="M-20 60 C60 20 110 100 190 65 S320 15 420 60" stroke="#A8F06A" opacity=".9"/>
+                  <path d="M-20 84 C60 44 110 124 190 89 S320 39 420 84" stroke="#7DE8B0" opacity=".75"/>
+                  <path d="M-20 108 C60 68 110 148 190 113 S320 63 420 108" stroke="#68C4FF" opacity=".7"/>
+                  <path d="M-20 132 C60 92 110 172 190 137 S320 87 420 132" stroke="#4C86FF" opacity=".55"/>
+                  <path d="M-20 156 C60 116 110 196 190 161 S320 111 420 156" stroke="#4C86FF" opacity=".35"/>
+                </g>
+                <circle cx="305" cy="55" r="26" fill="none" stroke="#A8F06A" stroke-width="1" opacity=".6"/>
+                <circle cx="305" cy="55" r="4" fill="#C9FF57"/>
+              </svg>
+            </div>
+            <div class="card-body">
+              <div class="card-cat"><span>IDENTITY SYSTEM</span><span>2026</span></div>
+              <h3 class="card-title">Coastline</h3>
+              <p class="card-desc">A living mark regenerated each day from tidal data.</p>
+              <div class="card-foot"><span>STRATEGY · SVG · MOTION</span><span class="arw">VIEW ↗</span></div>
+            </div>
+          </article>
+
+          <article class="work-card reveal" style="--i:2" data-cursor="OPEN" data-no-drag
+            data-num="02" data-title="FIELD RECORD" data-cat="EDITORIAL / PRINT" data-year="2025"
+            data-desc="A 240-page annual for a land trust. Every chart was redrawn as ink — no stock imagery, no default templates, no decorative grids."
+            data-scope="Editorial · Data · Typography" data-outcome="240 pages / 2 editions">
+            <div class="card-art">
+              <span class="card-num">02 / 04</span>
+              <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice">
+                <g stroke="#A8F06A" stroke-width="1" opacity=".65">
+                  <path d="M40 180V70 M62 180V96 M84 180V52 M106 180V112 M128 180V40 M150 180V88 M172 180V126 M194 180V62"/>
+                  <path d="M216 180V104 M238 180V74 M260 180V132 M282 180V46 M304 180V92 M326 180V118"/>
+                </g>
+                <g class="spin-slow"><circle cx="278" cy="76" r="52" fill="none" stroke="#4C86FF" stroke-width="1.2" opacity=".8"/>
+                  <circle cx="278" cy="76" r="34" fill="none" stroke="#68C4FF" stroke-width=".8" stroke-dasharray="3 5"/></g>
+                <path d="M20 180H380" stroke="#A8F06A" stroke-width="1" opacity=".5"/>
+                <text x="24" y="204" font-family="monospace" font-size="9" fill="#8AA6A1" letter-spacing="2">VOL. 01 / ACRES</text>
+              </svg>
+            </div>
+            <div class="card-body">
+              <div class="card-cat"><span>EDITORIAL / PRINT</span><span>2025</span></div>
+              <h3 class="card-title">Field Record</h3>
+              <p class="card-desc">240 pages of data, redrawn entirely as ink.</p>
+              <div class="card-foot"><span>EDITORIAL · DATA · TYPE</span><span class="arw">VIEW ↗</span></div>
+            </div>
+          </article>
+
+          <article class="work-card reveal" style="--i:3" data-cursor="OPEN" data-no-drag
+            data-num="03" data-title="CURRENT" data-cat="PRODUCT / MOTION" data-year="2024"
+            data-desc="A motion language for a real-time energy platform. Sixty states, one easing family, and a rule that every transition must explain where the data came from."
+            data-scope="Product · Motion System · Prototype" data-outcome="60 states / 1 grammar">
+            <div class="card-art">
+              <span class="card-num">03 / 04</span>
+              <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice">
+                <g class="floating" fill="none" stroke-width="1.3">
+                  <path d="M-30 170 C60 170 80 40 200 55 S330 170 430 120" stroke="#4C86FF" opacity=".9"/>
+                  <path d="M-30 145 C60 145 80 20 200 35 S330 145 430 95" stroke="#68C4FF" opacity=".7"/>
+                  <path d="M-30 120 C60 120 80 0 200 15 S330 120 430 70" stroke="#A8F06A" opacity=".65"/>
+                </g>
+                <g fill="#C9FF57"><circle cx="200" cy="55" r="4"/><circle cx="200" cy="35" r="3" opacity=".7"/><circle cx="200" cy="15" r="2.4" opacity=".5"/></g>
+                <path d="M200 15V200" stroke="#A8F06A" stroke-width=".7" stroke-dasharray="2 6" opacity=".6"/>
+              </svg>
+            </div>
+            <div class="card-body">
+              <div class="card-cat"><span>PRODUCT / MOTION</span><span>2024</span></div>
+              <h3 class="card-title">Current</h3>
+              <p class="card-desc">One easing family for sixty states of live data.</p>
+              <div class="card-foot"><span>PRODUCT · MOTION · SYSTEM</span><span class="arw">VIEW ↗</span></div>
+            </div>
+          </article>
+
+          <article class="work-card reveal" style="--i:4" data-cursor="OPEN" data-no-drag
+            data-num="04" data-title="SOFT MACHINE" data-cat="INTERACTIVE INSTALLATION" data-year="2023"
+            data-desc="A room that listens. Ambient sound is translated into a slow field of green and blue light, then printed as a single line each hour."
+            data-scope="Installation · Sensors · Realtime SVG" data-outcome="9 days / 216 prints">
+            <div class="card-art">
+              <span class="card-num">04 / 04</span>
+              <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice">
+                <defs><radialGradient id="softA"><stop offset="0" stop-color="#A8F06A" stop-opacity=".55"/><stop offset="1" stop-color="#A8F06A" stop-opacity="0"/></radialGradient>
+                <radialGradient id="softB"><stop offset="0" stop-color="#4C86FF" stop-opacity=".6"/><stop offset="1" stop-color="#4C86FF" stop-opacity="0"/></radialGradient></defs>
+                <circle class="spin-slow" cx="150" cy="105" r="90" fill="url(#softA)"/>
+                <circle class="spin-slow" cx="270" cy="120" r="95" fill="url(#softB)"/>
+                <g fill="none" stroke="#C9FF57" stroke-width=".9" opacity=".8">
+                  <circle cx="150" cy="105" r="24"/><circle cx="150" cy="105" r="46" stroke-dasharray="3 6"/><circle cx="150" cy="105" r="68" opacity=".5"/>
+                </g>
+                <g fill="#EAF2E9"><circle cx="270" cy="120" r="2"/><circle cx="292" cy="96" r="1.5"/><circle cx="248" cy="146" r="1.5"/></g>
+              </svg>
+            </div>
+            <div class="card-body">
+              <div class="card-cat"><span>INTERACTIVE INSTALLATION</span><span>2023</span></div>
+              <h3 class="card-title">Soft Machine</h3>
+              <p class="card-desc">A room that listens, and prints what it hears.</p>
+              <div class="card-foot"><span>SENSORS · REALTIME · SVG</span><span class="arw">VIEW ↗</span></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="work-marquee"><div class="marquee-inner" id="marquee"></div></div>
+      </section>
+
+      <!-- ============ 06 CONTACT ============ -->
+      <section class="panel panel--outro" data-w="100" data-name="CONTACT" data-theme="dark">
+        <div class="panel-index">06 — COLOPHON</div>
+        <div class="panel-side">THE LINE CONTINUES</div>
+        <svg class="outro-orbit" viewBox="0 0 700 700" aria-hidden="true">
+          <g class="orb" fill="none">
+            <circle cx="350" cy="350" r="300" stroke="#A8F06A" stroke-width=".8" opacity=".35" stroke-dasharray="2 10"/>
+            <circle cx="350" cy="350" r="238" stroke="#68C4FF" stroke-width=".8" opacity=".3"/>
+            <ellipse cx="350" cy="350" rx="300" ry="110" stroke="#4C86FF" stroke-width="1" opacity=".45"/>
+            <ellipse cx="350" cy="350" rx="110" ry="300" stroke="#A8F06A" stroke-width="1" opacity=".3"/>
+            <circle cx="650" cy="350" r="5" fill="#C9FF57" stroke="none"/>
+          </g>
+          <g class="orb2" fill="none">
+            <circle cx="350" cy="350" r="176" stroke="#A8F06A" stroke-width=".7" opacity=".3" stroke-dasharray="4 8"/>
+            <circle cx="350" cy="174" r="4" fill="#68C4FF" stroke="none"/>
+          </g>
+          <circle cx="350" cy="350" r="3" fill="#EAF2E9"/>
+        </svg>
+        <div class="outro-inner">
+          <div class="eyebrow reveal" style="--i:0">06 — END OF THE LINE</div>
+          <h2 class="reveal" style="--i:1">Let's make<br>something <span class="serif-i grad-text">move.</span></h2>
+          <p class="sub reveal" style="--i:2">One continuous line, seven chapters, no stock photography. If you made it this far, we should probably talk.</p>
+          <a class="outro-mail reveal" style="--i:3" href="mailto:hello@meridian.studio" data-cursor="WRITE">
+            hello@meridian.studio
+            <svg viewBox="0 0 24 24"><path d="M4 20L20 4M9 4h11v11" stroke-width="1.5"/></svg>
+          </a>
+          <div class="outro-foot reveal" style="--i:4">
+            <div class="socials"><a href="#!" data-cursor="LINK">INSTAGRAM</a><a href="#!" data-cursor="LINK">ARE.NA</a><a href="#!" data-cursor="LINK">GITHUB</a></div>
+            <span>DESIGNED &amp; BUILT IN ONE FILE · 2026</span>
+            <button class="to-start" id="toStart" data-cursor="BACK">
+              <svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="13" stroke-width="1"/><path d="M19 15H11M15 11l-4 4 4 4" stroke-width="1"/></svg>
+              BACK TO THE START
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer class="hud hud--bottom">
+  <div class="bottom-left">
+    <div class="section-readout"><b id="sectionNum">00 / 06</b> &nbsp; <span id="sectionName">PROLOGUE</span></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-label"><span>MERIDIAN / HORIZONTAL INDEX</span><span id="distance">0000 PX</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="fill"></div><div id="ticks"></div></div>
+  </div>
+  <div class="hint">SCROLL · DRAG · ← →</div>
+  <div class="pct">
+    <svg viewBox="0 0 34 34"><circle class="ring-bg" cx="17" cy="17" r="14"/><circle class="ring-fg" id="ring" cx="17" cy="17" r="14"/></svg>
+    <span id="pctText">00%</span>
+  </div>
+</footer>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Case note">
+  <button class="ov-close" id="ovClose" aria-label="Close">×</button>
+  <div class="overlay-inner">
+    <div class="ov-art" id="ovArt"></div>
+    <div>
+      <div class="ov-num" id="ovNum">01 / SELECTED WORK</div>
+      <h3 class="ov-title" id="ovTitle">COASTLINE</h3>
+      <div class="ov-cat" id="ovCat">IDENTITY SYSTEM · 2026</div>
+      <p class="ov-desc" id="ovDesc"></p>
+      <div class="ov-list">
+        <div><span>SCOPE</span><span id="ovScope"></span></div>
+        <div><span>OUTCOME</span><span id="ovOutcome"></span></div>
+        <div><span>STATUS</span><span>DELIVERED</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cursor-dot" id="curDot"></div>
+<div class="cursor-ring" id="curRing"><span id="curText">VIEW</span></div>
+
+<script>
+(() => {
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp  = (a, b, t) => a + (b - a) * t;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const body = document.body;
+  const stage = $('#stage'), viewport = $('#viewport'), track = $('#track');
+  const panels = $$('.panel');
+  const widths = panels.map(p => +p.dataset.w);
+  const nav = $('#nav'), ticksBox = $('#ticks');
+  const fill = $('#fill'), ring = $('#ring'), pctText = $('#pctText');
+  const marquee = $('#marquee');
+
+  let W = 0, H = 0, total = 0, maxScroll = 1;
+  let current = 0, active = -1, desktop = true, smoothScroll = true;
+  let data = [];
+
+  /* ---------- navigation chips + ticks ---------- */
+  panels.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.className = 'nav-chip';
+    b.dataset.num = String(i).padStart(2, '0');
+    b.textContent = String(i).padStart(2, '0') + ' ' + p.dataset.name;
+    b.addEventListener('click', () => goTo(i));
+    nav.appendChild(b);
+    const t = document.createElement('i');
+    t.className = 'tick'; t.style.display = 'block';
+    ticksBox.appendChild(t);
+  });
+  const chips = $$('.nav-chip'), tickEls = $$('.tick');
+
+  marquee.innerHTML = Array.from({ length: 6 }, () =>
+    '<span>COASTLINE <i>✳</i> FIELD RECORD <i>✳</i> CURRENT <i>✳</i> SOFT MACHINE <i>✳</i> SELECTED WORK 2023—2026 <i>✳</i></span>'
+  ).join('');
+
+  /* ---------- layout ---------- */
+  function layout() {
+    desktop = matchMedia('(min-width: 900px)').matches;
+    body.classList.toggle('mobile', !desktop);
+    W = innerWidth; H = innerHeight;
+
+    if (!desktop) {
+      stage.style.height = 'auto';
+      track.style.transform = 'none';
+      panels.forEach(p => { p.style.width = ''; p.classList.add('in-view'); p.style.setProperty('--p', '.5'); p.style.setProperty('--over', '0px'); });
+      return;
+    }
+    const ratio = maxScroll > 1 ? clamp(scrollY / maxScroll, 0, 1) : 0;
+    let x = 0; total = 0;
+    data = panels.map((p, i) => {
+      const w = Math.round(W * widths[i] / 100);
+      p.style.width = w + 'px';
+      p.style.setProperty('--over', Math.max(0, (w - W) / 2).toFixed(1) + 'px');
+      p.classList.toggle('is-wide', w > W + 20);
+      const d = { el: p, left: x, width: w, center: x + w / 2, i };
+      x += w; total += w;
+      return d;
+    });
+    stage.style.height = (total - W + H) + 'px';
+    maxScroll = Math.max(1, total - W);
+    data.forEach((d, i) => {
+      tickEls[i].style.left = (clamp(d.center - W / 2, 0, maxScroll) / maxScroll * 100) + '%';
+    });
+    if (ratio > 0) scrollTo(0, ratio * maxScroll);
+    current = clamp(scrollY, 0, maxScroll);
+  }
+
+  function goTo(i) {
+    if (!desktop) { panels[i].scrollIntoView({ behavior: 'smooth' }); return; }
+    // Jump the scroll position instantly; the inertia loop supplies the easing.
+    scrollTo(0, clamp(data[i].center - W / 2, 0, maxScroll));
+  }
+
+  /* ---------- generated contour (one rule, eleven rings) ---------- */
+  const contour = $('#contour');
+  const rings = [];
+  (function buildContour() {
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (tag, attrs) => {
+      const e = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+      return e;
+    };
+    contour.appendChild(mk('line', { class: 'axis', x1: 350, y1: 20, x2: 350, y2: 680 }));
+    contour.appendChild(mk('line', { class: 'axis', x1: 20, y1: 350, x2: 680, y2: 350 }));
+    const G = [168, 240, 106], B = [76, 134, 255];
+    for (let i = 0; i < 11; i++) {
+      const r = 42 + i * 27;
+      const phase = i * .34;
+      const pts = [];
+      for (let a = 0; a <= 72; a++) {
+        const th = a / 72 * Math.PI * 2;
+        const rr = r * (1 + .105 * Math.sin(3 * th + phase) + .055 * Math.sin(7 * th - phase * 1.7) + .028 * Math.cos(13 * th + phase));
+        pts.push((350 + Math.cos(th) * rr * 1.16).toFixed(1) + ' ' + (350 + Math.sin(th) * rr * .92).toFixed(1));
+      }
+      const d = 'M' + pts.join('L') + 'Z';
+      const t = i / 10;
+      const c = G.map((g, k) => Math.round(lerp(g, B[k], t)));
+      const path = mk('path', { class: 'ring', d, stroke: `rgb(${c.join(',')})` });
+      contour.appendChild(path);
+      const len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      rings.push({ el: path, len, i });
+      if (i % 3 === 0) {
+        const dot = mk('circle', { class: 'dot', cx: 350 + r * 1.16, cy: 350, r: 2.2 });
+        contour.appendChild(dot);
+      }
+    }
+  })();
+
+  /* ---------- parallax registry ---------- */
+  const depthEls = $$('[data-depth]').map(el => ({
+    el, d: +el.dataset.depth,
+    pi: panels.indexOf(el.closest('.panel'))
+  }));
+
+  /* ---------- master frame ---------- */
+  function setProgress(p) {
+    p = clamp(p, 0, 1);
+    fill.style.width = (p * 100) + '%';
+    ring.style.strokeDashoffset = (88 * (1 - p)).toFixed(1);
+    pctText.textContent = String(Math.round(p * 100)).padStart(2, '0') + '%';
+    tickEls.forEach((t, i) => {
+      const pos = desktop ? clamp(data[i].center - W / 2, 0, maxScroll) / maxScroll : i / (panels.length - 1);
+      t.classList.toggle('is-passed', p >= pos - .005);
+    });
+  }
+
+  let lastT = 0;
+  function frame(now) {
+    const t = now || performance.now();
+    const dt = lastT ? clamp(t - lastT, 1, 200) : 16.7;
+    lastT = t;
+    if (desktop) {
+      const target = clamp(scrollY, 0, maxScroll);
+      // Frame-rate independent damping: the same feel at 30, 60 or 144 Hz.
+      const f = reduced || !smoothScroll ? 1 : 1 - Math.exp(-dt / 70);
+      current = lerp(current, target, f);
+      if (Math.abs(current - target) < .06) current = target;
+      track.style.transform = `translate3d(${-current.toFixed(2)}px,0,0)`;
+      const cx = current + W / 2;
+      let best = Infinity, bestI = 0;
+
+      data.forEach((d, i) => {
+        const local = (cx - d.left) / d.width;
+        d.el.style.setProperty('--p', local.toFixed(4));
+        d.el.classList.toggle('in-view', current + W > d.left - 180 && current < d.left + d.width + 180);
+        const dist = Math.abs(d.center - cx);
+        if (dist < best) { best = dist; bestI = i; }
+      });
+
+      if (bestI !== active) {
+        active = bestI;
+        chips.forEach((c, i) => c.classList.toggle('is-current', i === active));
+        body.classList.toggle('on-light', panels[active].dataset.theme === 'light');
+        $('#sectionNum').textContent = String(active).padStart(2, '0') + ' / 06';
+        $('#sectionName').textContent = panels[active].dataset.name;
+      }
+
+      depthEls.forEach(o => {
+        const d = data[o.pi];
+        const local = (cx - d.left) / d.width;
+        o.el.style.transform = `translate3d(${((local - .5) * o.d * 90).toFixed(1)}px,0,0)`;
+      });
+
+      // contour draws itself as the panel crosses the viewport
+      const cd = data[2];
+      const cp = (cx - cd.left) / cd.width;
+      rings.forEach(r => {
+        const t = clamp((cp - .02 + r.i * .012) * 1.35, 0, 1);
+        r.el.style.strokeDashoffset = (r.len * (1 - t)).toFixed(1);
+      });
+
+      marquee.style.transform = `translateX(${(-current * .14 % 1400).toFixed(1)}px)`;
+      $('#distance').textContent = String(Math.round(current)).padStart(4, '0') + ' PX';
+      setProgress(current / maxScroll);
+    } else {
+      let best = Infinity, bestI = 0;
+      panels.forEach((p, i) => {
+        const r = p.getBoundingClientRect();
+        const d = Math.abs(r.top + r.height / 2 - H / 2);
+        if (d < best) { best = d; bestI = i; }
+      });
+      if (bestI !== active) {
+        active = bestI;
+        chips.forEach((c, i) => c.classList.toggle('is-current', i === active));
+        body.classList.toggle('on-light', panels[active].dataset.theme === 'light');
+        $('#sectionNum').textContent = String(active).padStart(2, '0') + ' / 06';
+        $('#sectionName').textContent = panels[active].dataset.name;
+      }
+      $('#distance').textContent = String(Math.round(scrollY)).padStart(4, '0') + ' PX';
+      setProgress(scrollY / Math.max(1, document.documentElement.scrollHeight - H));
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- custom cursor ---------- */
+  const dot = $('#curDot'), cring = $('#curRing'), ctext = $('#curText');
+  let mx = -100, my = -100, rx = -100, ry = -100;
+  addEventListener('pointermove', e => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+  });
+  (function cursorLoop() {
+    rx = lerp(rx, mx, .18); ry = lerp(ry, my, .18);
+    cring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+    requestAnimationFrame(cursorLoop);
+  })();
+  document.addEventListener('pointerover', e => {
+    const t = e.target.closest('[data-cursor]');
+    if (t) { ctext.textContent = t.dataset.cursor; body.classList.add('cur-active'); }
+    else body.classList.remove('cur-active');
+  });
+
+  /* ---------- drag to travel ---------- */
+  let drag = null;
+  viewport.addEventListener('pointerdown', e => {
+    if (!desktop || e.button !== 0 || e.target.closest('button,a,input,[data-no-drag],.mixer-panel')) return;
+    drag = { x: e.clientX, s: scrollY };
+    viewport.setPointerCapture(e.pointerId);
+    body.classList.add('dragging');
+  });
+  viewport.addEventListener('pointermove', e => {
+    if (!drag) return;
+    scrollTo(0, clamp(drag.s - (e.clientX - drag.x), 0, maxScroll));
+  });
+  const endDrag = () => { drag = null; body.classList.remove('dragging'); };
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
+
+  /* ---------- keyboard ---------- */
+  addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeOverlay(); return; }
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); goTo(clamp(active + 1, 0, panels.length - 1)); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(clamp(active - 1, 0, panels.length - 1)); }
+    if (e.key === 'Home') goTo(0);
+    if (e.key === 'End')  goTo(panels.length - 1);
+  });
+  $('#toStart').addEventListener('click', () => goTo(0));
+
+  /* ---------- kinetic letters ---------- */
+  const kinetic = $('#kinetic');
+  const text = 'TIME IS A MATERIAL.';
+  kinetic.innerHTML = text.split(' ').map(w =>
+    '<span class="kw">' + [...w].map(c => `<span class="kl">${c}</span>`).join('') + '</span>'
+  ).join('<span class="kl sp">&nbsp;</span>');
+  const letters = $$('.kl', kinetic);
+  kinetic.addEventListener('pointermove', e => {
+    letters.forEach(l => {
+      const r = l.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2);
+      const dy = e.clientY - (r.top + r.height / 2);
+      const dist = Math.hypot(dx, dy);
+      const power = clamp(1 - dist / 190, 0, 1);
+      const tx = -dx / (dist || 1) * power * 30;
+      const ty = -dy / (dist || 1) * power * 30;
+      l.style.transform = `translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px) rotate(${(tx * .12).toFixed(1)}deg)`;
+      l.style.color = power > .25 ? '#C9FF57' : '';
+    });
+  });
+  kinetic.addEventListener('pointerleave', () => letters.forEach(l => { l.style.transform = ''; l.style.color = ''; }));
+  function replay() {
+    letters.forEach((l, i) => {
+      l.animate(
+        [{ transform: 'translateY(46px) rotate(8deg)', opacity: 0 }, { transform: 'none', opacity: 1 }],
+        { duration: 720, delay: i * 55, easing: 'cubic-bezier(.19,1,.22,1)', fill: 'none' }
+      );
+    });
+  }
+  $('#replay').addEventListener('click', replay);
+
+  /* ---------- easing lab ---------- */
+  const curve = $('#curve'), trail = $('#curveTrail'), cdot = $('#curveDot');
+  const paths = {
+    linear: { d: 'M40 300 L360 60', label: 'LINEAR / CONSTANT VELOCITY' },
+    ease:   { d: 'M40 300 C 110 300 130 60 360 60', label: 'EASE-OUT EXPONENTIAL' },
+    spring: { d: 'M40 300 C 190 300 120 -34 360 60', label: 'SPRING / OVERSHOOT 1.15' }
+  };
+  const efn = {
+    linear: t => t,
+    ease:   t => 1 - Math.pow(2, -10 * t),
+    spring: t => 1 - Math.pow(2, -9 * t) * Math.cos(t * Math.PI * 3.2)
+  };
+  let mode = 'ease', playing = false;
+  function applyCurve(m) {
+    mode = m;
+    const p = paths[m];
+    curve.setAttribute('d', p.d);
+    trail.setAttribute('d', p.d);
+    $('#curveReadout').textContent = p.label;
+    $$('.ease-chip').forEach(c => c.classList.toggle('is-on', c.dataset.ease === m));
+    const len = curve.getTotalLength();
+    trail.style.strokeDasharray = len;
+    trail.style.strokeDashoffset = len;
+    const pt = curve.getPointAtLength(0);
+    cdot.setAttribute('cx', pt.x); cdot.setAttribute('cy', pt.y);
+  }
+  function playCurve() {
+    if (playing) return;
+    playing = true;
+    const len = curve.getTotalLength();
+    const t0 = performance.now(), dur = 1250;
+    (function step(now) {
+      const t = clamp((now - t0) / dur, 0, 1);
+      const v = clamp(efn[mode](t), 0, 1.08);
+      const pt = curve.getPointAtLength(len * Math.min(v, 1));
+      cdot.setAttribute('cx', pt.x.toFixed(1)); cdot.setAttribute('cy', pt.y.toFixed(1));
+      trail.style.strokeDashoffset = (len * (1 - Math.min(v, 1))).toFixed(1);
+      if (t < 1) requestAnimationFrame(step); else playing = false;
+    })(t0);
+  }
+  $$('.ease-chip').forEach(c => c.addEventListener('click', () => { applyCurve(c.dataset.ease); playCurve(); }));
+  $('#playBtn').addEventListener('click', playCurve);
+  applyCurve('ease');
+
+  /* ---------- spectrum mixer ---------- */
+  const spectrum = $('#spectrum'), knob = $('#mixKnob');
+  const G = [168, 240, 106], B = [76, 134, 255];
+  (function ticks() {
+    const box = $('#mixTicks'), NS = 'http://www.w3.org/2000/svg';
+    for (let i = 0; i <= 10; i++) {
+      const l = document.createElementNS(NS, 'line');
+      const x = 30 + i * 54;
+      l.setAttribute('class', 'ticky');
+      l.setAttribute('x1', x); l.setAttribute('x2', x);
+      l.setAttribute('y1', i % 5 === 0 ? 24 : 29);
+      l.setAttribute('y2', i % 5 === 0 ? 46 : 41);
+      box.appendChild(l);
+    }
+  })();
+  function mix(v) {
+    knob.setAttribute('cx', (30 + v * 540).toFixed(1));
+    const c = G.map((g, i) => Math.round(lerp(g, B[i], v)));
+    body.style.setProperty('--accent', `rgb(${c.join(',')})`);
+    $('#mixValue').textContent = (v < .5 ? 'GREEN ' : 'BLUE ') + Math.round(v < .5 ? (1 - v) * 100 : v * 100) + '%';
+    $('#mixLabel').textContent = Math.round(v * 100) + '% BLUE';
+  }
+  spectrum.addEventListener('input', () => mix(+spectrum.value / 100));
+  mix(+spectrum.value / 100);
+
+  /* ---------- toggles + magnetic button ---------- */
+  $$('[data-toggle]').forEach(b => b.addEventListener('click', () => {
+    const on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', String(on));
+    switch (b.dataset.toggle) {
+      case 'grid': body.classList.toggle('show-grid', on); break;
+      case 'grain': body.classList.toggle('no-grain', !on); break;
+      case 'inertia': smoothScroll = on; break;
+    }
+  }));
+  const mag = $('#magnetic');
+  mag.addEventListener('pointermove', e => {
+    const r = mag.getBoundingClientRect();
+    mag.style.transform = `translate(${((e.clientX - r.left - r.width / 2) * .3).toFixed(1)}px,${((e.clientY - r.top - r.height / 2) * .35).toFixed(1)}px)`;
+  });
+  mag.addEventListener('pointerleave', () => { mag.style.transform = ''; });
+  mag.addEventListener('click', () => goTo(6));
+
+  /* ---------- work cards: tilt + case notes ---------- */
+  const overlay = $('#overlay');
+  $$('.work-card').forEach(card => {
+    card.addEventListener('pointermove', e => {
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - .5;
+      const py = (e.clientY - r.top) / r.height - .5;
+      card.style.transform = `perspective(1000px) rotateY(${(px * 7).toFixed(2)}deg) rotateX(${(-py * 7).toFixed(2)}deg) translateY(-8px)`;
+    });
+    card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+    card.addEventListener('click', () => {
+      $('#ovNum').textContent = card.dataset.num + ' / SELECTED WORK';
+      $('#ovTitle').textContent = card.dataset.title;
+      $('#ovCat').textContent = card.dataset.cat + ' · ' + card.dataset.year;
+      $('#ovDesc').textContent = card.dataset.desc;
+      $('#ovScope').textContent = card.dataset.scope.toUpperCase();
+      $('#ovOutcome').textContent = card.dataset.outcome.toUpperCase();
+      $('#ovArt').innerHTML = '';
+      $('#ovArt').appendChild(card.querySelector('.card-art svg').cloneNode(true));
+      overlay.classList.add('is-open');
+    });
+  });
+  function closeOverlay() { overlay.classList.remove('is-open'); }
+  $('#ovClose').addEventListener('click', closeOverlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay(); });
+
+  /* ---------- clock ---------- */
+  const clock = $('#clock');
+  const tickClock = () => {
+    const d = new Date();
+    clock.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()]
+      .map(n => String(n).padStart(2, '0')).join(':');
+  };
+  tickClock(); setInterval(tickClock, 1000);
+
+  /* ---------- boot ---------- */
+  addEventListener('resize', () => { layout(); }, { passive: true });
+  layout();
+  requestAnimationFrame(frame);
+  setTimeout(replay, 900);
+  setTimeout(playCurve, 1500);
+})();
+</script>
+</body>
+</html>

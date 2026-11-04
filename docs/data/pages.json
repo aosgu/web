@@ -1,5 +1,23 @@
 [
   {
+    "id": "meridian-continuous-line-portfolio",
+    "name": "MERIDIAN · 一条线的横向作品集",
+    "description": "深墨绿底的横向卷轴：沿一条连续的线走过字体标本、SVG 线描、缓动实验室与光谱混色器，七段章节连成一次向东的旅行。",
+    "tags": [
+      "SVG",
+      "暗色",
+      "作品集",
+      "滚动叙事",
+      "悬停交互",
+      "极简"
+    ],
+    "hash": "a62b1cd0330e6648",
+    "updated": "2026-11-04T17:09:08+00:00",
+    "thumb": "thumbnails/meridian-continuous-line-portfolio-small.jpg",
+    "thumbLarge": "thumbnails/meridian-continuous-line-portfolio.jpg",
+    "path": "pages/meridian-continuous-line-portfolio/"
+  },
+  {
     "id": "flare-06-light-glass-index",
     "name": "Flare 06 · 光与玻璃配色索引",
     "description": "暗色作品集长页，把配色方案做成可交互的材质索引：点击复制 Flare 光谱色值，磨砂玻璃、发光色彩与形变几何随滚动依次展开。",
