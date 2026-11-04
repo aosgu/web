@@ -7,12 +7,14 @@
 ![灵感库集合页](docs/thumbnails/interactive-3p-insomnia-webpage-small.jpg)
 
 <!-- GALLERY:START -->
-## 已收录页面（13）
+## 已收录页面（15）
 
 按最近更新排序，点名称直接打开线上可交互页面。
 
 | 页面 | 说明 | 标签 |
 |---|---|---|
+| [Flare 06 · 光与玻璃配色索引](https://aosgu.github.io/web/pages/flare-06-light-glass-index/) | 暗色作品集长页，把配色方案做成可交互的材质索引：点击复制 Flare 光谱色值，磨砂玻璃、发光色彩与形变几何随滚动依次展开。 | React、Tailwind、暗色、渐变、玻璃拟态、作品集 |
+| [Iris Halden · 横向滚动作品集](https://aosgu.github.io/web/pages/iris-halden-horizontal-portfolio/) | 米白纸感的设计师作品集：GSAP 驱动横向卷轴，六张档案页依次铺开作品图版、学科标签与鹿特丹工作室信息，像翻阅一叠印刷样张。 | React、GSAP、亮色、复古、滚动叙事、作品集 |
 | [Index · 视觉作品集长页](https://aosgu.github.io/web/pages/visual-portfolio-index/) | 以版面、SVG 形状与滚动动效构成的作品集：形状实验室、调色板、绘制网格与字体实验区依次展开，自定义光标全程跟随。 | React、SVG、作品集、滚动叙事、悬停交互、亮色 |
 | [绿茵牧场 · 3D 羊群交互](https://aosgu.github.io/web/pages/pastoral-meadow-diorama/) | Three.js 搭建的牧场微缩景观：羊群在草地上活动，可切换场景与时段、点选小羊，配程序化纹理与环境音效。 | React、Three.js、3D、小游戏、悬停交互 |
 | [Nova Voss · 设计师作品集](https://aosgu.github.io/web/pages/nova-voss-portfolio/) | 虚构设计师 Nova Voss 的个人站：米白纸感底色上，字体实验室、动效研究与作品陈列随滚动推进，衬线与等宽字混排。 | React、作品集、滚动叙事、亮色、极简 |

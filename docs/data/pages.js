@@ -1,5 +1,41 @@
 window.PAGES_DATA = [
   {
+    "id": "flare-06-light-glass-index",
+    "name": "Flare 06 · 光与玻璃配色索引",
+    "description": "暗色作品集长页，把配色方案做成可交互的材质索引：点击复制 Flare 光谱色值，磨砂玻璃、发光色彩与形变几何随滚动依次展开。",
+    "tags": [
+      "React",
+      "Tailwind",
+      "暗色",
+      "渐变",
+      "玻璃拟态",
+      "作品集"
+    ],
+    "hash": "1ed6de6048e14f58",
+    "updated": "2026-11-04T16:43:51+00:00",
+    "thumb": "thumbnails/flare-06-light-glass-index-small.jpg",
+    "thumbLarge": "thumbnails/flare-06-light-glass-index.jpg",
+    "path": "pages/flare-06-light-glass-index/"
+  },
+  {
+    "id": "iris-halden-horizontal-portfolio",
+    "name": "Iris Halden · 横向滚动作品集",
+    "description": "米白纸感的设计师作品集：GSAP 驱动横向卷轴，六张档案页依次铺开作品图版、学科标签与鹿特丹工作室信息，像翻阅一叠印刷样张。",
+    "tags": [
+      "React",
+      "GSAP",
+      "亮色",
+      "复古",
+      "滚动叙事",
+      "作品集"
+    ],
+    "hash": "4169fb176c050bb7",
+    "updated": "2026-11-04T16:43:51+00:00",
+    "thumb": "thumbnails/iris-halden-horizontal-portfolio-small.jpg",
+    "thumbLarge": "thumbnails/iris-halden-horizontal-portfolio.jpg",
+    "path": "pages/iris-halden-horizontal-portfolio/"
+  },
+  {
     "id": "visual-portfolio-index",
     "name": "Index · 视觉作品集长页",
     "description": "以版面、SVG 形状与滚动动效构成的作品集：形状实验室、调色板、绘制网格与字体实验区依次展开，自定义光标全程跟随。",
