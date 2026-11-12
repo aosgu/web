@@ -1,5 +1,23 @@
 window.PAGES_DATA = [
   {
+    "id": "caffeine-half-life-tracker",
+    "name": "咖啡因半衰期 · 交互时间轴",
+    "description": "纯黑等宽字体的咖啡因代谢计算器：在 24 小时轴上拖动杯子、点击添加，实时算出睡前残留毫克数与今日最晚一杯时间。",
+    "tags": [
+      "React",
+      "Canvas",
+      "暗色",
+      "数据可视化",
+      "拖拽",
+      "极简"
+    ],
+    "hash": "b38dd1631a1be28f",
+    "updated": "2026-11-12T03:42:41+00:00",
+    "thumb": "thumbnails/caffeine-half-life-tracker-small.jpg",
+    "thumbLarge": "thumbnails/caffeine-half-life-tracker.jpg",
+    "path": "pages/caffeine-half-life-tracker/"
+  },
+  {
     "id": "meridian-continuous-line-portfolio",
     "name": "MERIDIAN · 一条线的横向作品集",
     "description": "深墨绿底的横向卷轴：沿一条连续的线走过字体标本、SVG 线描、缓动实验室与光谱混色器，七段章节连成一次向东的旅行。",

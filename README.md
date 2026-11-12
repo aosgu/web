@@ -7,12 +7,13 @@
 ![灵感库集合页](docs/thumbnails/interactive-3p-insomnia-webpage-small.jpg)
 
 <!-- GALLERY:START -->
-## 已收录页面（16）
+## 已收录页面（17）
 
 按最近更新排序，点名称直接打开线上可交互页面。
 
 | 页面 | 说明 | 标签 |
 |---|---|---|
+| [咖啡因半衰期 · 交互时间轴](https://aosgu.github.io/web/pages/caffeine-half-life-tracker/) | 纯黑等宽字体的咖啡因代谢计算器：在 24 小时轴上拖动杯子、点击添加，实时算出睡前残留毫克数与今日最晚一杯时间。 | React、Canvas、暗色、数据可视化、拖拽、极简 |
 | [MERIDIAN · 一条线的横向作品集](https://aosgu.github.io/web/pages/meridian-continuous-line-portfolio/) | 深墨绿底的横向卷轴：沿一条连续的线走过字体标本、SVG 线描、缓动实验室与光谱混色器，七段章节连成一次向东的旅行。 | SVG、暗色、作品集、滚动叙事、悬停交互、极简 |
 | [Flare 06 · 光与玻璃配色索引](https://aosgu.github.io/web/pages/flare-06-light-glass-index/) | 暗色作品集长页，把配色方案做成可交互的材质索引：点击复制 Flare 光谱色值，磨砂玻璃、发光色彩与形变几何随滚动依次展开。 | React、Tailwind、暗色、渐变、玻璃拟态、作品集 |
 | [Iris Halden · 横向滚动作品集](https://aosgu.github.io/web/pages/iris-halden-horizontal-portfolio/) | 米白纸感的设计师作品集：GSAP 驱动横向卷轴，六张档案页依次铺开作品图版、学科标签与鹿特丹工作室信息，像翻阅一叠印刷样张。 | React、GSAP、亮色、复古、滚动叙事、作品集 |
